@@ -19,6 +19,7 @@ package stats
 
 import (
 	"fmt"
+	"k8s.io/kubernetes/pkg/kubelet/runtimeregistry"
 
 	cadvisorapiv1 "github.com/google/cadvisor/info/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +40,7 @@ func NewCRIStatsProvider(
 	resourceAnalyzer stats.ResourceAnalyzer,
 	podManager kubepod.Manager,
 	runtimeCache kubecontainer.RuntimeCache,
-	runtimeManager kubecontainer.RuntimeManager,
+	runtimeManager runtimeregistry.Interface,
 	logMetricsService LogMetricsService,
 	osInterface kubecontainer.OSInterface,
 ) *StatsProvider {
@@ -208,5 +209,9 @@ func (p *StatsProvider) HasDedicatedImageFs() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return device != rootFsInfo.Device, nil
+	if device != rootFsInfo.Device {
+		return true, nil
+	}
+
+	return false, nil
 }

@@ -20,6 +20,7 @@ package kuberuntime
 import (
 	"errors"
 	"fmt"
+	"k8s.io/kubernetes/pkg/kubelet/runtimeregistry"
 	"os"
 	"strings"
 	"sync"
@@ -82,26 +83,6 @@ var (
 	reservedDefaultRuntimeServiceName = "default"
 )
 
-type runtimeService struct {
-	name         string
-	workloadType string
-	endpointUrl  string
-	serviceApi   internalapi.RuntimeService
-	isDefault    bool
-	// primary runtime service the runtime service for cluster daemonset workload types
-	// default to container runtime service
-	// from runtime's perspective, nodeReady when the primary runtime service ready on the node
-	isPrimary bool
-}
-
-type imageService struct {
-	name         string
-	workloadType string
-	endpointUrl  string
-	serviceApi   internalapi.ImageManagerService
-	isDefault    bool
-}
-
 // podStateProvider can determine if a pod is deleted ir terminated
 type podStateProvider interface {
 	IsPodDeleted(kubetypes.UID) bool
@@ -141,10 +122,6 @@ type kubeGenericRuntimeManager struct {
 	// CPUCFSQuotaPeriod sets the CPU CFS quota period value, cpu.cfs_period_us, defaults to 100ms
 	cpuCFSQuotaPeriod metav1.Duration
 
-	// gRPC service clients
-	runtimeServices map[string]*runtimeService
-	imageServices   map[string]*imageService
-
 	// Pod-runtimeService maps
 	// Runtime manager maintains the pod-runtime map to optimize the performance in Getters
 	// key: podUid string
@@ -170,6 +147,9 @@ type kubeGenericRuntimeManager struct {
 	// testing usage only for now. it can be used as an indicator of any runtime status errors detected by the runtime manager
 	//
 	runtimeStatusErr error
+
+	// runtime registry
+	runtimeRegistry runtimeregistry.Interface
 }
 
 // KubeGenericRuntime is a interface contains interfaces for container runtime and command.
@@ -177,7 +157,6 @@ type KubeGenericRuntime interface {
 	kubecontainer.Runtime
 	kubecontainer.StreamingRuntime
 	kubecontainer.ContainerCommandRunner
-	kubecontainer.RuntimeManager
 }
 
 // LegacyLogProvider gives the ability to use unsupported docker log drivers (e.g. journald)
@@ -186,6 +165,8 @@ type LegacyLogProvider interface {
 	GetContainerLogTail(uid kubetypes.UID, name, namespace, tenant string, containerID kubecontainer.ContainerID) (string, error)
 }
 
+// refactor: use the runtime registry passed in from kubelet, and replace the remoteRuntimeEndpoints parameter
+//
 // NewKubeGenericRuntimeManager creates a new kubeGenericRuntimeManager
 func NewKubeGenericRuntimeManager(
 	recorder record.EventRecorder,
@@ -206,7 +187,7 @@ func NewKubeGenericRuntimeManager(
 	internalLifecycle cm.InternalContainerLifecycle,
 	legacyLogProvider LegacyLogProvider,
 	runtimeClassManager *runtimeclass.Manager,
-	remoteRuntimeEndpoints string,
+	_runtimeRegistry runtimeregistry.Interface,
 ) (KubeGenericRuntime, error) {
 	kubeRuntimeManager := &kubeGenericRuntimeManager{
 		recorder:            recorder,
@@ -227,12 +208,7 @@ func NewKubeGenericRuntimeManager(
 
 	// TODO: retrieve runtimeName dynamically per the runtime being used for a POD
 	kubeRuntimeManager.runtimeName = "unknown"
-
-	var err error
-	kubeRuntimeManager.runtimeServices, kubeRuntimeManager.imageServices, err = buildRuntimeServicesMapFromAgentCommandArgs(remoteRuntimeEndpoints)
-	if err != nil {
-		return nil, err
-	}
+	kubeRuntimeManager.runtimeRegistry = _runtimeRegistry
 
 	// If the container logs directory does not exist, create it.
 	// TODO: create podLogsRootDirectory at kubelet.go when kubelet is refactored to new runtime interface
@@ -307,9 +283,15 @@ func (m *kubeGenericRuntimeManager) GetRuntimeServiceByPod(pod *v1.Pod) (interna
 		}
 	}
 
-	if runtimeService, found := m.runtimeServices[*runtimeName]; found {
+	runtimeServices, err :=  m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+		klog.Errorf("GetAllRuntimeServices failed: %v", err)
+		return nil, err
+	}
+
+	if runtimeService, found := runtimeServices[*runtimeName]; found {
 		klog.V(4).Infof("Got runtime service [%v] for POD %s", runtimeService, pod.Name)
-		return runtimeService.serviceApi, nil
+		return runtimeService.ServiceApi, nil
 	}
 
 	// this should not be reached
@@ -358,8 +340,14 @@ func (m *kubeGenericRuntimeManager) GetRuntimeServiceByContainerIDString(id stri
 func (m *kubeGenericRuntimeManager) GetAllRuntimeServices() ([]internalapi.RuntimeService, error) {
 	runtimes := make([]internalapi.RuntimeService, 0)
 
-	for _, service := range m.runtimeServices {
-		runtimes = append(runtimes, service.serviceApi)
+	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+		klog.Errorf("GetAllRuntimeServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range runtimeServices {
+		runtimes = append(runtimes, service.ServiceApi)
 	}
 
 	klog.V(4).Infof("GetAllRuntimeServices returns : %v", runtimes)
@@ -369,9 +357,15 @@ func (m *kubeGenericRuntimeManager) GetAllRuntimeServices() ([]internalapi.Runti
 func (m *kubeGenericRuntimeManager) GetAllRuntimeServicesForWorkload(workloadType string) ([]internalapi.RuntimeService, error) {
 	runtimes := make([]internalapi.RuntimeService, 0)
 
-	for _, service := range m.runtimeServices {
-		if service.workloadType == workloadType {
-			runtimes = append(runtimes, service.serviceApi)
+	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+		klog.Errorf("GetAllRuntimeServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range runtimeServices {
+		if service.WorkloadType == workloadType {
+			runtimes = append(runtimes, service.ServiceApi)
 		}
 	}
 
@@ -380,10 +374,16 @@ func (m *kubeGenericRuntimeManager) GetAllRuntimeServicesForWorkload(workloadTyp
 }
 
 func (m *kubeGenericRuntimeManager) GetDefaultRuntimeServiceForWorkload(workloadType string) (internalapi.RuntimeService, error) {
-	for _, service := range m.runtimeServices {
-		if service.workloadType == workloadType && service.isDefault {
-			klog.V(4).Infof("Got default runtime service [%v] for workload type %s", service.serviceApi, workloadType)
-			return service.serviceApi, nil
+	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+		klog.Errorf("GetAllRuntimeServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range runtimeServices {
+		if service.WorkloadType == workloadType && service.IsDefault {
+			klog.V(4).Infof("Got default runtime service [%v] for workload type %s", service.ServiceApi, workloadType)
+			return service.ServiceApi, nil
 		}
 	}
 
@@ -391,10 +391,16 @@ func (m *kubeGenericRuntimeManager) GetDefaultRuntimeServiceForWorkload(workload
 }
 
 func (m *kubeGenericRuntimeManager) GetPrimaryRuntimeService() (internalapi.RuntimeService, error) {
-	for _, service := range m.runtimeServices {
-		if service.isPrimary {
-			klog.V(4).Infof("Got primary runtime service [%v]", service.serviceApi)
-			return service.serviceApi, nil
+	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+		klog.Errorf("GetAllRuntimeServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range runtimeServices {
+		if service.IsPrimary {
+			klog.V(4).Infof("Got primary runtime service [%v]", service.ServiceApi)
+			return service.ServiceApi, nil
 		}
 	}
 
@@ -415,9 +421,15 @@ func (m *kubeGenericRuntimeManager) GetImageServiceByPod(pod *v1.Pod) (internala
 		}
 	}
 
-	if imageService, found := m.imageServices[*runtimeName]; found {
+	imageServices, err := m.runtimeRegistry.GetAllImageServices()
+	if err != nil {
+		klog.Errorf("GetAllImageServices failed: %v", err)
+		return nil, err
+	}
+
+	if imageService, found := imageServices[*runtimeName]; found {
 		klog.V(4).Infof("Got image service [%v] for POD %s", imageService, pod.Name)
-		return imageService.serviceApi, nil
+		return imageService.ServiceApi, nil
 	}
 
 	// this should not be reached
@@ -428,8 +440,14 @@ func (m *kubeGenericRuntimeManager) GetImageServiceByPod(pod *v1.Pod) (internala
 func (m *kubeGenericRuntimeManager) GetAllImageServices() ([]internalapi.ImageManagerService, error) {
 	imageServices := make([]internalapi.ImageManagerService, 0)
 
-	for _, service := range m.imageServices {
-		imageServices = append(imageServices, service.serviceApi)
+	ims, err := m.runtimeRegistry.GetAllImageServices()
+	if err != nil {
+		klog.Errorf("GetAllImageServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range ims {
+		imageServices = append(imageServices, service.ServiceApi)
 	}
 
 	klog.V(4).Infof("GetAllImageServices returns : %v", imageServices)
@@ -437,10 +455,16 @@ func (m *kubeGenericRuntimeManager) GetAllImageServices() ([]internalapi.ImageMa
 }
 
 func (m *kubeGenericRuntimeManager) GetDefaultImageServiceForWorkload(workloadType string) (internalapi.ImageManagerService, error) {
-	for _, service := range m.imageServices {
-		if service.workloadType == workloadType && service.isDefault {
-			klog.V(4).Infof("Got default image service [%v] for workload type %s", service.serviceApi, workloadType)
-			return service.serviceApi, nil
+	imageServices, err := m.runtimeRegistry.GetAllImageServices()
+	if err != nil {
+		klog.Errorf("GetAllImageServices failed: %v", err)
+		return nil, err
+	}
+
+	for _, service := range imageServices {
+		if service.WorkloadType == workloadType && service.IsDefault {
+			klog.V(4).Infof("Got default image service [%v] for workload type %s", service.ServiceApi, workloadType)
+			return service.ServiceApi, nil
 		}
 	}
 
@@ -529,11 +553,16 @@ func (m *kubeGenericRuntimeManager) GetAllRuntimeStatus() (map[string]map[string
 	vmServices := make(map[string]bool)
 	containerServices := make(map[string]bool)
 
-	for runtimeName, runtimeService := range m.runtimeServices {
-		workloadType := runtimeService.workloadType
+	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
+	if err != nil {
+	    return nil, err
+	}
+
+	for runtimeName, runtimeService := range runtimeServices {
+		workloadType := runtimeService.WorkloadType
 		runtimeReady := true
 
-		status, err := runtimeService.serviceApi.Status()
+		status, err := runtimeService.ServiceApi.Status()
 		if err != nil || status == nil {
 			runtimeReady = false
 		}
@@ -569,22 +598,44 @@ func (m *kubeGenericRuntimeManager) RuntimeStatus(runtimeService internalapi.Run
 
 // Existing Container runtime interface, returns the type of the default runtime
 func (m *kubeGenericRuntimeManager) Type() string {
-	return m.RuntimeType(m.runtimeServices[defaultRuntimeServiceName].serviceApi)
+	if runtime, err := m.runtimeRegistry.GetPrimaryRuntimeService(); err == nil {
+		return m.RuntimeType(runtime.ServiceApi)
+	}
+	return "unknownType"
 }
 
 // Existing container runtime interface method, return the Version of the default runtime service
 func (m *kubeGenericRuntimeManager) Version() (kubecontainer.Version, error) {
-	return m.RuntimeVersion(m.runtimeServices[defaultRuntimeServiceName].serviceApi)
+	runtime, err := m.runtimeRegistry.GetPrimaryRuntimeService()
+
+	if err == nil {
+		return m.RuntimeVersion(runtime.ServiceApi)
+	}
+
+	return nil, err
 }
 
 // Existing container runtime interface method, return the ApiVersion of the default runtime service
 func (m *kubeGenericRuntimeManager) APIVersion() (kubecontainer.Version, error) {
-	return m.RuntimeAPIVersion(m.runtimeServices[defaultRuntimeServiceName].serviceApi)
+	runtime, err := m.runtimeRegistry.GetPrimaryRuntimeService()
+
+	if err == nil {
+		return m.RuntimeAPIVersion(runtime.ServiceApi)
+	}
+
+	return nil, err
 }
 
 // Existing container runtime interface method, return the status of the default runtime service
 func (m *kubeGenericRuntimeManager) Status() (*kubecontainer.RuntimeStatus, error) {
-	return m.RuntimeStatus(m.runtimeServices[defaultRuntimeServiceName].serviceApi)
+	runtime, err := m.runtimeRegistry.GetPrimaryRuntimeService()
+
+	if err == nil {
+		return m.RuntimeStatus(runtime.ServiceApi)
+	}
+
+	return nil, err
+
 }
 
 //---------------- End of runtime manager interface implementation --------------------//
