@@ -28,9 +28,10 @@ import (
 )
 
 const (
-    runtimeRequestTimeout = 15 * time.Second
-    containerWorkloadType = "container"
-    vmworkloadType        = "vm"
+    RuntimeRequestTimeout = 15 * time.Second
+    ContainerWorkloadType = "container"
+    VmworkloadType        = "vm"
+	UnknownType           = "TypeUnknown"
 )
 
 type RuntimeService struct {
@@ -186,7 +187,7 @@ func buildRuntimeServicesMapFromAgentCommandArgs(remoteRuntimeEndpoints string) 
 			return nil, nil, err
 		}
 
-		rs, is, err := getRuntimeAndImageServices(endpointUrl, endpointUrl, metav1.Duration{runtimeRequestTimeout})
+		rs, is, err := getRuntimeAndImageServices(endpointUrl, endpointUrl, metav1.Duration{RuntimeRequestTimeout})
 		if err != nil {
 			return nil, nil, err
 		}
@@ -209,7 +210,7 @@ func buildRuntimeServicesMapFromAgentCommandArgs(remoteRuntimeEndpoints string) 
 			return nil, nil, err
 		}
 
-		rs, is, err := getRuntimeAndImageServices(endpointUrl, endpointUrl, metav1.Duration{runtimeRequestTimeout})
+		rs, is, err := getRuntimeAndImageServices(endpointUrl, endpointUrl, metav1.Duration{RuntimeRequestTimeout})
 		if err != nil {
 			return nil, nil, err
 		}
@@ -217,13 +218,13 @@ func buildRuntimeServicesMapFromAgentCommandArgs(remoteRuntimeEndpoints string) 
 		setDefault := false
 		setPrimry := false
 
-		if workloadType == containerWorkloadType && firstContainerType == true ||
-			workloadType == vmworkloadType && firstVmType == true {
+		if workloadType == ContainerWorkloadType && firstContainerType == true ||
+			workloadType == VmworkloadType && firstVmType == true {
 			setDefault = true
 		}
 
 		// Consider first container runtime as primary that must be ready for the node ready condition
-		if workloadType == containerWorkloadType && firstContainerType == true {
+		if workloadType == ContainerWorkloadType && firstContainerType == true {
 			setPrimry = true
 		}
 
@@ -232,10 +233,10 @@ func buildRuntimeServicesMapFromAgentCommandArgs(remoteRuntimeEndpoints string) 
 		imageServices[name] = &ImageService{name,
 			workloadType, endpointUrl, is, setDefault}
 
-		if workloadType == containerWorkloadType {
+		if workloadType == ContainerWorkloadType {
 			firstContainerType = false
 		}
-		if workloadType == vmworkloadType {
+		if workloadType == VmworkloadType {
 			firstVmType = false
 		}
 	}
@@ -255,7 +256,7 @@ func parseEndpoint(endpoint string) (string, string, string, error) {
 	case 1:
 		// case 1: old format from kubelet commandline, The commandline itself is the endpointUrl
 		name = "default"
-		workloadType = containerWorkloadType // this should be for all workload types if there is only one endpoint
+		workloadType = ContainerWorkloadType // this should be for all workload types if there is only one endpoint
 		endpointUrl = endpointEle[0]
 	case 3:
 		// case 2: only one runtime service endpoint is specified and is formatted as name,worklaodtype,endpointUrl

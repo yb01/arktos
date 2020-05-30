@@ -67,13 +67,6 @@ const (
 	versionCacheTTL = 60 * time.Second
 	// How frequently to report identical errors
 	identicalErrorDelay = 1 * time.Minute
-
-	runtimeMethodNotImplemented = "not implemented. please use the function with runtimeService as parameter"
-
-	runtimeRequestTimeout = 15 * time.Second
-	containerWorkloadType = "container"
-	vmworkloadType        = "vm"
-	unknownType           = "TypeUnknown"
 )
 
 var (
@@ -165,8 +158,6 @@ type LegacyLogProvider interface {
 	GetContainerLogTail(uid kubetypes.UID, name, namespace, tenant string, containerID kubecontainer.ContainerID) (string, error)
 }
 
-// refactor: use the runtime registry passed in from kubelet, and replace the remoteRuntimeEndpoints parameter
-//
 // NewKubeGenericRuntimeManager creates a new kubeGenericRuntimeManager
 func NewKubeGenericRuntimeManager(
 	recorder record.EventRecorder,
@@ -228,8 +219,9 @@ func NewKubeGenericRuntimeManager(
 	return kubeRuntimeManager, nil
 }
 
-//------------------------ rutimeManager interface implementation -----------------------------//
-
+// TODO: further cleanup of those helper functions which relays the call to the runtime registry
+//       and move those functions to helper.go file
+//
 // Retrieve the runtime service with PODID
 func (m *kubeGenericRuntimeManager) GetRuntimeServiceByPodID(podId kubetypes.UID) (internalapi.RuntimeService, error) {
 	klog.V(4).Infof("Retrieve runtime service for podID %v", podId)
@@ -277,9 +269,9 @@ func (m *kubeGenericRuntimeManager) GetRuntimeServiceByPod(pod *v1.Pod) (interna
 	if runtimeName == nil || *runtimeName == "" {
 		klog.V(4).Infof("Get default runtime service for POD %s", pod.Name)
 		if pod.Spec.VirtualMachine != nil {
-			return m.GetDefaultRuntimeServiceForWorkload(vmworkloadType)
+			return m.GetDefaultRuntimeServiceForWorkload(runtimeregistry.VmworkloadType)
 		} else {
-			return m.GetDefaultRuntimeServiceForWorkload(containerWorkloadType)
+			return m.GetDefaultRuntimeServiceForWorkload(runtimeregistry.ContainerWorkloadType)
 		}
 	}
 
@@ -415,9 +407,9 @@ func (m *kubeGenericRuntimeManager) GetImageServiceByPod(pod *v1.Pod) (internala
 	if runtimeName == nil || *runtimeName == "" {
 		klog.V(4).Infof("Get default image service for POD %s", pod.Name)
 		if pod.Spec.VirtualMachine != nil {
-			return m.GetDefaultImageServiceForWorkload(vmworkloadType)
+			return m.GetDefaultImageServiceForWorkload(runtimeregistry.VmworkloadType)
 		} else {
-			return m.GetDefaultImageServiceForWorkload(containerWorkloadType)
+			return m.GetDefaultImageServiceForWorkload(runtimeregistry.ContainerWorkloadType)
 		}
 	}
 
@@ -491,7 +483,7 @@ func (m *kubeGenericRuntimeManager) GetDesiredImagePuller(pod *v1.Pod) (images.I
 func (m *kubeGenericRuntimeManager) RuntimeType(service internalapi.RuntimeService) string {
 	typedVersion, err := m.GetTypedVersion(service)
 	if err != nil {
-		return unknownType
+		return runtimeregistry.UnknownType
 	}
 
 	return typedVersion.RuntimeName
@@ -637,8 +629,6 @@ func (m *kubeGenericRuntimeManager) Status() (*kubecontainer.RuntimeStatus, erro
 	return nil, err
 
 }
-
-//---------------- End of runtime manager interface implementation --------------------//
 
 // operations on the pod-runtimeServiceName map
 func (m *kubeGenericRuntimeManager) addPodRuntimeService(podId string, runtimeService internalapi.RuntimeService) error {

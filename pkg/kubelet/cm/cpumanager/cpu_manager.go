@@ -329,10 +329,9 @@ func (m *manager) updateContainerCPUSet(p *v1.Pod, containerID string, cpus cpus
 			})
 	}
 
-	//TODO: replace the hardcoded workload type with constants
-	podWorkloadType := "container"
+	podWorkloadType := runtimeregistry.ContainerWorkloadType
 	if p.Spec.VirtualMachine != nil {
-		podWorkloadType = "vm"
+		podWorkloadType = runtimeregistry.VmworkloadType
 	}
 	runtimeService, err := m.runtimeManager.GetRuntimeServiceByWorkloadType(podWorkloadType)
 	if err != nil {

@@ -979,12 +979,6 @@ type Kubelet struct {
 	// Manager for image garbage collection.
 	imageManager images.ImageGCManager
 
-	// Manager for all runtimes.
-	// refactor: rename to runtimeservice registry
-	// and build the runtime service registry object struct and pass it into the
-	// kubegeneric manager and replace the runtimeendpoint string
-	// remove all usage for this interface outside the kuberuntime package
-	//
 	runtimeManager runtimeregistry.Interface
 
 	// Manager for container logs.

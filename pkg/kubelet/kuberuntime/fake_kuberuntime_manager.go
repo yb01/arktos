@@ -81,14 +81,14 @@ func newFakeKubeRuntimeManager(rs internalapi.RuntimeService, is internalapi.Ima
 	imageServices[defaultRuntimeServiceName] = &runtimeregistry.ImageService{}
 	imageServices[defaultRuntimeServiceName].ServiceApi = is
 	imageServices[defaultRuntimeServiceName].Name = reservedDefaultRuntimeServiceName
-	imageServices[defaultRuntimeServiceName].WorkloadType = containerWorkloadType
+	imageServices[defaultRuntimeServiceName].WorkloadType = runtimeregistry.ContainerWorkloadType
 	imageServices[defaultRuntimeServiceName].IsDefault = true
 
 	runtimeServices := make(map[string]*runtimeregistry.RuntimeService)
 	runtimeServices[defaultRuntimeServiceName] = &runtimeregistry.RuntimeService{}
 	runtimeServices[defaultRuntimeServiceName].ServiceApi = rs
 	runtimeServices[defaultRuntimeServiceName].Name = reservedDefaultRuntimeServiceName
-	runtimeServices[defaultRuntimeServiceName].WorkloadType = containerWorkloadType
+	runtimeServices[defaultRuntimeServiceName].WorkloadType = runtimeregistry.ContainerWorkloadType
 	runtimeServices[defaultRuntimeServiceName].IsDefault = true
 	runtimeServices[defaultRuntimeServiceName].IsPrimary= true
 

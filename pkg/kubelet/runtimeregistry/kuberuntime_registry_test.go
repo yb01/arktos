@@ -103,13 +103,13 @@ func TestBuildRuntimeServiceMap(t *testing.T) {
 }
 
 func makeExpectedRuntimeServiceForLegacyEndpoint(endpoint string) map[string]*RuntimeService {
-	runtime, _ := remote.NewRemoteRuntimeService(endpoint, runtimeRequestTimeout)
+	runtime, _ := remote.NewRemoteRuntimeService(endpoint, RuntimeRequestTimeout)
 	return map[string]*RuntimeService{
 		"default": {"default", "container", endpoint, runtime, true, true},
 	}
 }
 func makeExpectedImageServiceForLegacyEndpoint(endpoint string) map[string]*ImageService {
-	runtime, _ := remote.NewRemoteImageService(endpoint, runtimeRequestTimeout)
+	runtime, _ := remote.NewRemoteImageService(endpoint, RuntimeRequestTimeout)
 	return map[string]*ImageService{
 		"default": {"default", "container", endpoint, runtime, true},
 	}

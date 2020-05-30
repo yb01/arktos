@@ -141,42 +141,6 @@ type VmDeviceManagerService interface {
 	ListNetworkInterfaces(*v1.Pod, string) ([]*v1.Nic, error)
 }
 
-//// TODO: this interface will be needed for VM workload type as well with the return value to be generic
-////       which will be phase2 effort in Arktos runtime
-//// TODO: move this interface to a separated packet for general purpose for VM and container workload types
-//// Interfaces for kubeGenericRuntimeManager
-//type RuntimeManager interface {
-//	// Get all runtime services supported on the node
-//	GetAllRuntimeServices() ([]internalapi.RuntimeService, error)
-//
-//	// Get the primary runtime service for the Arktos cluster
-//	GetPrimaryRuntimeService() (internalapi.RuntimeService, error)
-//
-//	// Get all image services supported on the node
-//	GetAllImageServices() ([]internalapi.ImageManagerService, error)
-//
-//	// Get the desired runtime service as needed. late binding the runtimeService to the pod
-//	GetRuntimeServiceByPod(pod *v1.Pod) (internalapi.RuntimeService, error)
-//
-//	// Get the desired runtimeServie with the POD ID
-//	GetRuntimeServiceByPodID(podId kubetypes.UID) (internalapi.RuntimeService, error)
-//
-//	// Get the desired image manager servcie as needed. late binding with the pod
-//	GetImageServiceByPod(pod *v1.Pod) (internalapi.ImageManagerService, error)
-//
-//	//Get the status of the given runtime
-//	RuntimeStatus(runtimeService internalapi.RuntimeService) (*RuntimeStatus, error)
-//
-//	// Get the version of the given runtime
-//	RuntimeVersion(service internalapi.RuntimeService) (Version, error)
-//
-//	// Get the typed version from the runtime service
-//	GetTypedVersion(service internalapi.RuntimeService) (*runtimeapi.VersionResponse, error)
-//
-//	// Get all runtime service readiness status, by workloadType at outer map and by runtimeName at inner map
-//	GetAllRuntimeStatus() (map[string]map[string]bool, error)
-//}
-
 // StreamingRuntime is the interface implemented by runtimes that handle the serving of the
 // streaming calls (exec/attach/port-forward) themselves. In this case, Kubelet should redirect to
 // the runtime server.
