@@ -346,25 +346,6 @@ func (m *kubeGenericRuntimeManager) GetAllRuntimeServices() ([]internalapi.Runti
 	return runtimes, nil
 }
 
-func (m *kubeGenericRuntimeManager) GetAllRuntimeServicesForWorkload(workloadType string) ([]internalapi.RuntimeService, error) {
-	runtimes := make([]internalapi.RuntimeService, 0)
-
-	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
-	if err != nil {
-		klog.Errorf("GetAllRuntimeServices failed: %v", err)
-		return nil, err
-	}
-
-	for _, service := range runtimeServices {
-		if service.WorkloadType == workloadType {
-			runtimes = append(runtimes, service.ServiceApi)
-		}
-	}
-
-	klog.V(4).Infof("GetAllRuntimeServicesForWorkload returns : %v", runtimes)
-	return runtimes, nil
-}
-
 func (m *kubeGenericRuntimeManager) GetDefaultRuntimeServiceForWorkload(workloadType string) (internalapi.RuntimeService, error) {
 	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
 	if err != nil {
