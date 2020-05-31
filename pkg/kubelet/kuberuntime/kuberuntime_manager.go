@@ -536,49 +536,6 @@ func (m *kubeGenericRuntimeManager) RuntimeAPIVersion(service internalapi.Runtim
 	return newRuntimeVersion(typedVersion.RuntimeApiVersion)
 }
 
-// AllRuntimeStatus is a helper function that returns all runtime status as a map for each workload types
-// map[runtimeName]bool
-// it is used in kubelet to determine runtime readiness, both networking and compute of the runtime service
-func (m *kubeGenericRuntimeManager) GetAllRuntimeStatus() (map[string]map[string]bool, error) {
-
-	statuses := make(map[string]map[string]bool)
-	vmServices := make(map[string]bool)
-	containerServices := make(map[string]bool)
-
-	runtimeServices, err := m.runtimeRegistry.GetAllRuntimeServices()
-	if err != nil {
-	    return nil, err
-	}
-
-	for runtimeName, runtimeService := range runtimeServices {
-		workloadType := runtimeService.WorkloadType
-		runtimeReady := true
-
-		status, err := runtimeService.ServiceApi.Status()
-		if err != nil || status == nil {
-			runtimeReady = false
-		}
-
-		for _, c := range status.GetConditions() {
-			if c.Status != true {
-				runtimeReady = false
-				break
-			}
-		}
-
-		if workloadType == "vm" {
-			vmServices[runtimeName] = runtimeReady
-		} else {
-			containerServices[runtimeName] = runtimeReady
-		}
-	}
-
-	statuses["vm"] = vmServices
-	statuses["container"] = containerServices
-
-	return statuses, nil
-}
-
 func (m *kubeGenericRuntimeManager) RuntimeStatus(runtimeService internalapi.RuntimeService) (*kubecontainer.RuntimeStatus, error) {
 	status, err := runtimeService.Status()
 	if err != nil {
