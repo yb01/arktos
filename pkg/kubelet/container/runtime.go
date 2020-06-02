@@ -50,7 +50,7 @@ type Version interface {
 // information about the different image types.
 type ImageSpec struct {
 	Image string
-	Pod *v1.Pod
+	Pod   *v1.Pod
 }
 
 // ImageStats contains statistics about all the images currently available.
