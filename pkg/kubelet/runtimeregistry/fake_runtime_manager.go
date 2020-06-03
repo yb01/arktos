@@ -66,6 +66,16 @@ func (r *FakeRuntimeManager) GetRuntimeServiceByWorkloadType(workloadtype string
 	return nil, fmt.Errorf("runtime servcie for workload type %v is not defined", workloadtype)
 }
 
+func (r *FakeRuntimeManager) GetImageServiceByWorkloadType(workloadtype string) (*ImageService, error) {
+	for _, imageService := range r.imageServices {
+		if imageService.WorkloadType == workloadtype {
+			return imageService, nil
+		}
+	}
+
+	return nil, fmt.Errorf("image servcie for workload type %v is not defined", workloadtype)
+}
+
 // Get status for all runtime services
 func (r *FakeRuntimeManager) GetAllRuntimeStatus() (map[string]map[string]bool, error) {
 	return nil, nil

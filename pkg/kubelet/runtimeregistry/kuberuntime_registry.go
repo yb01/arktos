@@ -69,6 +69,8 @@ type Interface interface {
 	GetPrimaryRuntimeService() (*RuntimeService, error)
 	// Get the runtime service for particular workload type(VM or container)
 	GetRuntimeServiceByWorkloadType(workloadtype string) (*RuntimeService, error)
+	// Get the runtime service for particular workload type(VM or container)
+	GetImageServiceByWorkloadType(workloadtype string) (*ImageService, error)
 	// Get status for all runtime services
 	GetAllRuntimeStatus() (map[string]map[string]bool, error)
 
@@ -112,6 +114,16 @@ func (r *KubeRuntimeRegistry) GetRuntimeServiceByWorkloadType(workloadtype strin
 	}
 
 	return nil, fmt.Errorf("runtime servcie for workload type %v is not defined", workloadtype)
+}
+
+func (r *KubeRuntimeRegistry) GetImageServiceByWorkloadType(workloadtype string) (*ImageService, error) {
+	for _, imageService := range r.ImageServices {
+		if imageService.WorkloadType == workloadtype {
+			return imageService, nil
+		}
+	}
+
+	return nil, fmt.Errorf("image servcie for workload type %v is not defined", workloadtype)
 }
 
 // Get status for all runtime services
