@@ -178,7 +178,7 @@ func NewKubeGenericRuntimeManager(
 	internalLifecycle cm.InternalContainerLifecycle,
 	legacyLogProvider LegacyLogProvider,
 	runtimeClassManager *runtimeclass.Manager,
-	_runtimeRegistry runtimeregistry.Interface,
+	runtimeRegistry runtimeregistry.Interface,
 ) (KubeGenericRuntime, error) {
 	kubeRuntimeManager := &kubeGenericRuntimeManager{
 		recorder:            recorder,
@@ -199,7 +199,7 @@ func NewKubeGenericRuntimeManager(
 
 	// TODO: retrieve runtimeName dynamically per the runtime being used for a POD
 	kubeRuntimeManager.runtimeName = "unknown"
-	kubeRuntimeManager.runtimeRegistry = _runtimeRegistry
+	kubeRuntimeManager.runtimeRegistry = runtimeRegistry
 
 	// If the container logs directory does not exist, create it.
 	// TODO: create podLogsRootDirectory at kubelet.go when kubelet is refactored to new runtime interface
