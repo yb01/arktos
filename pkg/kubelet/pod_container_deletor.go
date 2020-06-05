@@ -41,10 +41,10 @@ func (a containerStatusbyCreatedList) Len() int           { return len(a) }
 func (a containerStatusbyCreatedList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a containerStatusbyCreatedList) Less(i, j int) bool { return a[i].CreatedAt.After(a[j].CreatedAt) }
 
-func newPodContainerDeletor(_runtime kubecontainer.Runtime, containersToKeep int) *podContainerDeletor {
+func newPodContainerDeletor(kubeRuntime kubecontainer.Runtime, containersToKeep int) *podContainerDeletor {
 	return &podContainerDeletor{
 		containersToKeep: containersToKeep,
-		runtime: _runtime,
+		runtime: kubeRuntime,
 	}
 }
 

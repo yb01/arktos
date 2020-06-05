@@ -648,7 +648,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		klet.runtimeClassManager = runtimeclass.NewManager(kubeDeps.KubeClient)
 	}
 
-	rr, err := runtimeregistry.NewKubeRuntimeRegistry(remoteRuntimeEndpoint)
+	runtimeRegistry, err := runtimeregistry.NewKubeRuntimeRegistry(remoteRuntimeEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed construct runtime registry object %v", err)
 	}
@@ -672,7 +672,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		kubeDeps.ContainerManager.InternalContainerLifecycle(),
 		legacyLogProvider,
 		klet.runtimeClassManager,
-		rr,
+		runtimeRegistry,
 	)
 	if err != nil {
 		return nil, err
@@ -681,7 +681,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	klet.containerRuntime = runtimeManager
 	klet.streamingRuntime = runtimeManager
 	klet.runner = runtimeManager
-	klet.runtimeManager = rr
+	klet.runtimeManager = runtimeRegistry
 
 	runtimeCache, err := kubecontainer.NewRuntimeCache(klet.containerRuntime)
 	if err != nil {

@@ -88,6 +88,8 @@ type StatsProvider struct {
 
 // containerStatsProvider is an interface that provides the stats of the
 // containers managed by pods.
+// TODO: support multiple runtime/image services
+// Arktos issue 350
 type containerStatsProvider interface {
 	ListPodStats() ([]statsapi.PodStats, error)
 	ListPodStatsAndUpdateCPUNanoCoreUsage() ([]statsapi.PodStats, error)

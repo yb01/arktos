@@ -368,6 +368,7 @@ func (p *criStatsProvider) ImageFsStats() (*statsapi.FsStats, error) {
 }
 
 // TODO: support multiple image services, it requires stat_provider interface changes
+// Arktos issue 350
 // ImageFsDevice returns name of the device where the image filesystem locates,
 // e.g. /dev/sda1.
 func (p *criStatsProvider) ImageFsDevice() (string, error) {

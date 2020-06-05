@@ -73,7 +73,6 @@ type Interface interface {
 	GetImageServiceByWorkloadType(workloadtype string) (*ImageService, error)
 	// Get status for all runtime services
 	GetAllRuntimeStatus() (map[string]map[string]bool, error)
-
 }
 
 func NewKubeRuntimeRegistry (remoteRuntimeEndpoints string) (*KubeRuntimeRegistry, error) {
@@ -148,15 +147,15 @@ func (r *KubeRuntimeRegistry) GetAllRuntimeStatus() (map[string]map[string]bool,
 			}
 		}
 
-		if workloadType == "vm" {
+		if workloadType == VmworkloadType {
 			vmServices[runtimeName] = runtimeReady
 		} else {
 			containerServices[runtimeName] = runtimeReady
 		}
 	}
 
-	statuses["vm"] = vmServices
-	statuses["container"] = containerServices
+	statuses[VmworkloadType] = vmServices
+	statuses[ContainerWorkloadType] = containerServices
 
 	return statuses, nil
 }
