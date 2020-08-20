@@ -23,6 +23,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+        "k8s.io/klog"
+//         "runtime/debug"
 )
 
 const (
@@ -2927,8 +2929,12 @@ type PodSpec struct {
 }
 
 func (ps *PodSpec) Workloads() []CommonInfo {
-	if len(ps.WorkloadInfo) == 0 {
+	klog.Infof("debug workload called. stack:")
+//	debug.PrintStack()
+
+//	if len(ps.WorkloadInfo) == 0 {
 		if ps.VirtualMachine != nil {
+			klog.Infof("debug vm resource: %v", ps.VirtualMachine.Resources)
 			ps.WorkloadInfo = make([]CommonInfo, 1)
 			ps.WorkloadInfo[0].Name = ps.VirtualMachine.Name
 			ps.WorkloadInfo[0].Image = ps.VirtualMachine.Image
@@ -2940,6 +2946,7 @@ func (ps *PodSpec) Workloads() []CommonInfo {
 		} else {
 			ps.WorkloadInfo = make([]CommonInfo, len(ps.Containers))
 			for i := range ps.Containers {
+				klog.Infof("debug container resource: %v", ps.Containers[i].Resources)
 				ps.WorkloadInfo[i].Name = ps.Containers[i].Name
 				ps.WorkloadInfo[i].Image = ps.Containers[i].Image
 				ps.WorkloadInfo[i].ImagePullPolicy = ps.Containers[i].ImagePullPolicy
@@ -2949,11 +2956,12 @@ func (ps *PodSpec) Workloads() []CommonInfo {
 				ps.WorkloadInfo[i].VolumeMounts = ps.Containers[i].VolumeMounts
 			}
 		}
-	}
+//}
 	return ps.WorkloadInfo
 }
 
 func (ps *PodSpec) SetWorkloads() {
+klog.Infof("debug SetWorkloads called")
 	// Update mutable fields
 	if len(ps.WorkloadInfo) != 0 {
 		if ps.VirtualMachine != nil {

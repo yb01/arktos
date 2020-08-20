@@ -72,11 +72,15 @@ func (p *Plugin) Admit(attributes admission.Attributes, o admission.ObjectInterf
 		return apierrors.NewBadRequest("Resource was marked with kind Pod but was unable to be converted")
 	}
 
+	klog.V(4).Infof("debug3: newpod %v: spec: %v, workloadInfo: %v", pod.Name, pod.Spec, pod.Spec.WorkloadInfo)
+
 	op := attributes.GetOperation()
 	// mutation to set defaults is done in admission plugin rather than in defaults
 	// because doing it here allows us to support create/update from older client versions
 	switch op {
 	case admission.Create:
+		klog.V(4).Infof("debug2: newpod %v: spec: %v, workloadInfo: %v", pod.Name, pod.Spec, pod.Spec.WorkloadInfo)
+
 		podQoS := qos.GetPodQOS(pod)
 		for i := range pod.Spec.Workloads() {
 			// set container resize policy to nil for best-effort class
@@ -117,8 +121,8 @@ func (p *Plugin) Admit(attributes admission.Attributes, o admission.ObjectInterf
 
 	case admission.Update:
 		oldPod, ok := attributes.GetOldObject().(*api.Pod)
-		klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
-		klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", pod.Spec, pod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: oldpod %v: spec: %v, workloadInfo: %v", oldPod.Name, oldPod.Spec, oldPod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: newpod %v: spec: %v, workloadInfo: %v", pod.Name, pod.Spec, pod.Spec.WorkloadInfo)
 
 		if !ok {
 			return apierrors.NewBadRequest("Resource was marked with kind Pod but was unable to be converted")
@@ -140,13 +144,13 @@ func (p *Plugin) Admit(attributes admission.Attributes, o admission.ObjectInterf
 			}
 		}
 
-		klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
-		klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", pod.Spec, pod.Spec.WorkloadInfo)
-		klog.V(4).Infof("debug: SetWorkloads")
+		//klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", pod.Spec, pod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: SetWorkloads")
 		pod.Spec.SetWorkloads()
 
-		klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
-		klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", pod.Spec, pod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
+		//klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", pod.Spec, pod.Spec.WorkloadInfo)
 	}
 	return nil
 }

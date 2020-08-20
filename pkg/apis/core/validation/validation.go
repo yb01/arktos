@@ -3709,6 +3709,9 @@ func ValidatePodUpdate(newPod, oldPod *core.Pod) field.ErrorList {
 	allErrs = append(allErrs, ValidatePodSpecificAnnotationUpdates(newPod, oldPod, fldPath.Child("annotations"))...)
 	specPath := field.NewPath("spec")
 
+	klog.V(4).Infof("debug: oldpod: spec: %v, workloadInfo: %v", oldPod.Spec, oldPod.Spec.WorkloadInfo)
+	klog.V(4).Infof("debug: newpod: spec: %v, workloadInfo: %v", newPod.Spec, newPod.Spec.WorkloadInfo)
+
 	// validate updateable fields:
 	// 1.  spec.containers[*].image
 	// 2.  spec.initContainers[*].image
@@ -3846,6 +3849,9 @@ func ValidatePodUpdate(newPod, oldPod *core.Pod) field.ErrorList {
 	}
 	// munge spec.nics
 	mungedPod.Spec.Nics = oldPod.Spec.Nics
+
+	// munge spec.workloadinfo
+	mungedPod.Spec.WorkloadInfo = oldPod.Spec.WorkloadInfo
 
 	// Allow only additions to tolerations updates.
 	mungedPod.Spec.Tolerations = oldPod.Spec.Tolerations

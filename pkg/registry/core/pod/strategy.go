@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"k8s.io/klog"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -168,6 +169,8 @@ var StatusStrategy = podStatusStrategy{Strategy}
 func (podStatusStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
 	newPod := obj.(*api.Pod)
 	oldPod := old.(*api.Pod)
+	klog.Infof("debug5 newpod %v, spec: %v", newPod.Name, newPod.Spec)
+
 	newPod.Spec = oldPod.Spec
 	newPod.DeletionTimestamp = nil
 
