@@ -20,6 +20,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"k8s.io/klog"
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -71,10 +72,14 @@ type RESTGracefulDeleteStrategy interface {
 // This function is responsible for setting deletionTimestamp during gracefulDeletion,
 // other one for cascading deletions.
 func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.Object, options *metav1.DeleteOptions) (graceful, gracefulPending bool, err error) {
+	klog.Infof("debug: Enter BeforeDelete")
+
 	objectMeta, gvk, kerr := objectMetaAndKind(strategy, obj)
 	if kerr != nil {
 		return false, false, kerr
 	}
+	klog.Infof("debug: object meta: %v, gvk: %v", objectMeta, gvk)
+
 	if errs := validation.ValidateDeleteOptions(options); len(errs) > 0 {
 		return false, false, errors.NewInvalid(schema.GroupKind{Group: metav1.GroupName, Kind: "DeleteOptions"}, "", errs)
 	}
@@ -93,6 +98,8 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 		// the obcject before deleting it.
 		return false, false, nil
 	}
+	klog.Infof("debug: %v-%v gracefulStrategy: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), gracefulStrategy)
+
 	// if the object is already being deleted, no need to update generation.
 	if objectMeta.GetDeletionTimestamp() != nil {
 		// if we are already being deleted, we may only shorten the deletion grace period
@@ -107,29 +114,38 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 		// check if the existing stored resource has a grace period as 0 and if so
 		// attempt to delete immediately in order to recover from this scenario.
 		if objectMeta.GetDeletionGracePeriodSeconds() == nil || *objectMeta.GetDeletionGracePeriodSeconds() == 0 {
+			klog.Infof("debug: %v-%v gracePeriod is 0 or nil. return.", objectMeta.GetName(), objectMeta.GetResourceVersion())
 			return false, false, nil
 		}
 		// only a shorter grace period may be provided by a user
 		if options.GracePeriodSeconds != nil {
 			period := int64(*options.GracePeriodSeconds)
 			if period >= *objectMeta.GetDeletionGracePeriodSeconds() {
+				klog.Infof("debug: %v-%v gracefulPending. return",objectMeta.GetName(), objectMeta.GetResourceVersion())
 				return false, true, nil
 			}
 			newDeletionTimestamp := metav1.NewTime(
 				objectMeta.GetDeletionTimestamp().Add(-time.Second * time.Duration(*objectMeta.GetDeletionGracePeriodSeconds())).
 					Add(time.Second * time.Duration(*options.GracePeriodSeconds)))
+
+			klog.Infof("debug: %v-%v setDeletionTimestamp: %v, gracePeriod: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), newDeletionTimestamp, period)
 			objectMeta.SetDeletionTimestamp(&newDeletionTimestamp)
 			objectMeta.SetDeletionGracePeriodSeconds(&period)
 			return true, false, nil
 		}
 		// graceful deletion is pending, do nothing
+		klog.Infof("debug: %v-%v gracePeriod is set. return.",objectMeta.GetName(), objectMeta.GetResourceVersion())
 		options.GracePeriodSeconds = objectMeta.GetDeletionGracePeriodSeconds()
 		return false, true, nil
 	}
 
+	klog.Infof("debug: %v-%v option before check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), options.GracePeriodSeconds)
 	if !gracefulStrategy.CheckGracefulDelete(ctx, obj, options) {
+		klog.Infof("debug: %v-%v CheckGracefulDelete returns false.",objectMeta.GetName(), objectMeta.GetResourceVersion())
 		return false, false, nil
 	}
+	klog.Infof("debug: %v-%v option after check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), options.GracePeriodSeconds)
+
 	now := metav1.NewTime(metav1.Now().Add(time.Second * time.Duration(*options.GracePeriodSeconds)))
 	objectMeta.SetDeletionTimestamp(&now)
 	objectMeta.SetDeletionGracePeriodSeconds(options.GracePeriodSeconds)
@@ -140,6 +156,8 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 	if objectMeta.GetGeneration() > 0 {
 		objectMeta.SetGeneration(objectMeta.GetGeneration() + 1)
 	}
+
+	klog.Infof("debug: Leave BeforeDelete")
 	return true, false, nil
 }
 

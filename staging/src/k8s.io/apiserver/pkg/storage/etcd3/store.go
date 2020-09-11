@@ -294,6 +294,7 @@ func (s *store) Create(ctx context.Context, key string, obj, out runtime.Object,
 
 // Delete implements storage.Interface.Delete.
 func (s *store) Delete(ctx context.Context, key string, out runtime.Object, preconditions *storage.Preconditions, validateDeletion storage.ValidateObjectFunc) error {
+	klog.Infof("debug: Enter Delete")
 	v, err := conversion.EnforcePtr(out)
 	if err != nil {
 		panic("unable to convert output object to pointer")
@@ -303,6 +304,7 @@ func (s *store) Delete(ctx context.Context, key string, out runtime.Object, prec
 }
 
 func (s *store) conditionalDelete(ctx context.Context, key string, out runtime.Object, v reflect.Value, preconditions *storage.Preconditions, validateDeletion storage.ValidateObjectFunc) error {
+	klog.Infof("debug: Enter conditionalDelete")
 	startTime := time.Now()
 	getResp, err := s.getClientFromKey(key).KV.Get(ctx, key)
 	metrics.RecordEtcdRequestLatency("get", getTypeName(out), startTime)
@@ -343,7 +345,7 @@ func (s *store) conditionalDelete(ctx context.Context, key string, out runtime.O
 	}
 }
 
-// GuaranteedUpdate implements storage.Interface.GuaranteedUpdate.
+// implements storage.Interface.GuaranteedUpdate.
 func (s *store) GuaranteedUpdate(
 	ctx context.Context, key string, out runtime.Object, ignoreNotFound bool,
 	preconditions *storage.Preconditions, tryUpdate storage.UpdateFunc, suggestion ...runtime.Object) error {

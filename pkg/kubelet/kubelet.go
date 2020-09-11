@@ -2007,7 +2007,7 @@ func (kl *Kubelet) syncLoopIteration(configCh <-chan kubetypes.PodUpdate, handle
 			klog.V(2).Infof("SyncLoop (REMOVE, %q): %q", u.Source, format.PodsWithDeletionTimestampsAndResourceVersions(u.Pods))
 			handler.HandlePodRemoves(u.Pods)
 		case kubetypes.RECONCILE:
-			klog.V(4).Infof("SyncLoop (RECONCILE, %q): %q", u.Source, format.Pods(u.Pods))
+			klog.V(4).Infof("SyncLoop (RECONCILE, %q): %q", u.Source, format.PodsWithDeletionTimestampsAndResourceVersions(u.Pods))
 			handler.HandlePodReconcile(u.Pods)
 		case kubetypes.DELETE:
 			klog.V(2).Infof("SyncLoop (DELETE, %q): %q", u.Source, format.PodsWithDeletionTimestampsAndResourceVersions(u.Pods))

@@ -864,6 +864,7 @@ func deletionFinalizersForGarbageCollection(ctx context.Context, e *Store, acces
 // deletionTimestamp is further in future. Finalizers are watching for such updates and will
 // finalize the object if their IDs are present in the object's Finalizers list.
 func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
+	klog.Infof("debug: Enter markAsDeleting")
 	objectMeta, kerr := meta.Accessor(obj)
 	if kerr != nil {
 		return kerr
@@ -881,6 +882,7 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 	}
 	var zero int64 = 0
 	objectMeta.SetDeletionGracePeriodSeconds(&zero)
+	klog.Infof("debug: Leave markAsDeleting")
 	return nil
 }
 
@@ -897,6 +899,11 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 // 4. a new output object with the state that was updated
 // 5. a copy of the last existing state of the object
 func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name, key string, options *metav1.DeleteOptions, preconditions storage.Preconditions, deleteValidation rest.ValidateObjectFunc, in runtime.Object) (err error, ignoreNotFound, deleteImmediately bool, out, lastExisting runtime.Object) {
+	klog.Infof("debug: Enter updateForGracefulDeletionAndFinalizers")
+	defer func() {
+		klog.Infof("debug: Leave updateForGracefulDeletionAndFinalizers")
+	}()
+
 	lastGraceful := int64(0)
 	var pendingFinalizers bool
 	out = e.NewFunc()
@@ -915,6 +922,7 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 				return nil, err
 			}
 			if pendingGraceful {
+				klog.Infof("debug: BeforeDelete returns pendingGraceful")
 				return nil, errAlreadyDeleting
 			}
 
@@ -981,6 +989,7 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 
 // Delete removes the item from storage.
 func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.ValidateObjectFunc, options *metav1.DeleteOptions) (runtime.Object, bool, error) {
+	klog.Infof("debug: Enter Delete")
 	key, err := e.KeyFunc(ctx, name)
 	if err != nil {
 		return nil, false, err
@@ -1002,6 +1011,8 @@ func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.V
 		preconditions.ResourceVersion = options.Preconditions.ResourceVersion
 	}
 	graceful, pendingGraceful, err := rest.BeforeDelete(e.DeleteStrategy, ctx, obj, options)
+	klog.Infof("debug: BeforeDelete returns %v %v %v", graceful, pendingGraceful, err)
+
 	if err != nil {
 		return nil, false, err
 	}
