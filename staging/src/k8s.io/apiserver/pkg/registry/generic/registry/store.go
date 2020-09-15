@@ -869,6 +869,7 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 	if kerr != nil {
 		return kerr
 	}
+	klog.Infof("debug: Enter markAsDeleting for %v-%v, deletionTimeStamp %v", objectMeta.GetName(), objectMeta.GetResourceVersion(), objectMeta.GetDeletionTimestamp())
 	// This handles Generation bump for resources that don't support graceful
 	// deletion. For resources that support graceful deletion is handle in
 	// pkg/api/rest/delete.go
@@ -882,7 +883,7 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 	}
 	var zero int64 = 0
 	objectMeta.SetDeletionGracePeriodSeconds(&zero)
-	klog.Infof("debug: Leave markAsDeleting")
+	klog.Infof("debug: Leave markAsDeleting for %v-%v, deletionTimeStamp %v", objectMeta.GetName(), objectMeta.GetResourceVersion(), objectMeta.GetDeletionTimestamp())
 	return nil
 }
 
@@ -899,9 +900,9 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 // 4. a new output object with the state that was updated
 // 5. a copy of the last existing state of the object
 func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name, key string, options *metav1.DeleteOptions, preconditions storage.Preconditions, deleteValidation rest.ValidateObjectFunc, in runtime.Object) (err error, ignoreNotFound, deleteImmediately bool, out, lastExisting runtime.Object) {
-	klog.Infof("debug: Enter updateForGracefulDeletionAndFinalizers")
+	klog.Infof("debug: Enter updateForGracefulDeletionAndFinalizers for %v-%v", key, name)
 	defer func() {
-		klog.Infof("debug: Leave updateForGracefulDeletionAndFinalizers")
+		klog.Infof("debug: Leave updateForGracefulDeletionAndFinalizers for %v-%v", key, name)
 	}()
 
 	lastGraceful := int64(0)
@@ -918,6 +919,7 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 				return nil, err
 			}
 			graceful, pendingGraceful, err := rest.BeforeDelete(e.DeleteStrategy, ctx, existing, options)
+			klog.Infof("debug: BeforeDelete for %v-%v returns %v %v %v", key, name, graceful, pendingGraceful, err)
 			if err != nil {
 				return nil, err
 			}
@@ -943,7 +945,7 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 			if !graceful {
 				// set the DeleteGracePeriods to 0 if the object has pendingFinalizers but not supporting graceful deletion
 				if pendingFinalizers {
-					klog.V(6).Infof("update the DeletionTimestamp to \"now\" and GracePeriodSeconds to 0 for object %s, because it has pending finalizers", name)
+					klog.V(4).Infof("debug update the DeletionTimestamp to \"now\" and GracePeriodSeconds to 0 for object %s, because it has pending finalizers", name)
 					err = markAsDeleting(existing, time.Now())
 					if err != nil {
 						return nil, err
@@ -989,11 +991,11 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 
 // Delete removes the item from storage.
 func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.ValidateObjectFunc, options *metav1.DeleteOptions) (runtime.Object, bool, error) {
-	klog.Infof("debug: Enter Delete")
 	key, err := e.KeyFunc(ctx, name)
 	if err != nil {
 		return nil, false, err
 	}
+	klog.Infof("debug: registry store Enter Delete. key %v, name %v", key, name)
 
 	obj := e.NewFunc()
 	qualifiedResource := e.qualifiedResourceFromContext(ctx)
@@ -1011,7 +1013,7 @@ func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.V
 		preconditions.ResourceVersion = options.Preconditions.ResourceVersion
 	}
 	graceful, pendingGraceful, err := rest.BeforeDelete(e.DeleteStrategy, ctx, obj, options)
-	klog.Infof("debug: BeforeDelete returns %v %v %v", graceful, pendingGraceful, err)
+	klog.Infof("debug: BeforeDelete for %v-%v returns %v %v %v", key, name, graceful, pendingGraceful, err)
 
 	if err != nil {
 		return nil, false, err
@@ -1019,13 +1021,18 @@ func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.V
 	// this means finalizers cannot be updated via DeleteOptions if a deletion is already pending
 	if pendingGraceful {
 		out, err := e.finalizeDelete(ctx, obj, false)
+		klog.Infof("debug: finalizeDelete for %v-%v returns %v %v", key, name, out, err)
+		klog.Infof("debug: BeforeDelete for %v-%v returns %v %v %v", key, name, out, false, err)
 		return out, false, err
 	}
 	// check if obj has pending finalizers
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
+		klog.Infof("debug: meta.Accessor for %v-%v returns error %v", key, name, accessor.GetName(), err)
+		klog.Infof("debug: BeforeDelete for %v-%v returns %v %v %v", key, name, nil, pendingGraceful, err)
 		return nil, false, kubeerr.NewInternalError(err)
 	}
+	klog.Infof("debug: meta.Accessor for %v-%v returns %v %v %v", key, name, accessor.GetName(), accessor.GetResourceVersion(), accessor.GetDeletionTimestamp())
 	pendingFinalizers := len(accessor.GetFinalizers()) != 0
 	var ignoreNotFound bool
 	var deleteImmediately bool = true
@@ -1034,9 +1041,13 @@ func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.V
 	// Handle combinations of graceful deletion and finalization by issuing
 	// the correct updates.
 	shouldUpdateFinalizers, _ := deletionFinalizersForGarbageCollection(ctx, e, accessor, options)
+	klog.Infof("debug: deletionFinalizersForGarbageCollection for %v-%v returns %v", key, name, shouldUpdateFinalizers)
+
 	// TODO: remove the check, because we support no-op updates now.
 	if graceful || pendingFinalizers || shouldUpdateFinalizers {
+		klog.Infof("debug: calling updateForGracefulDeletionAndFinalizers for %v-%v", key, name)
 		err, ignoreNotFound, deleteImmediately, out, lastExisting = e.updateForGracefulDeletionAndFinalizers(ctx, name, key, options, preconditions, deleteValidation, obj)
+		klog.Infof("debug: got updateForGracefulDeletionAndFinalizers for %v-%v. %v, %v, %v, %v, %v", key, name, err, ignoreNotFound, deleteImmediately, out, lastExisting)
 	}
 
 	// !deleteImmediately covers all cases where err != nil. We keep both to be future-proof.

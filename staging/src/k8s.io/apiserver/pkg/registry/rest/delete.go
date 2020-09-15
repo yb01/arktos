@@ -72,9 +72,9 @@ type RESTGracefulDeleteStrategy interface {
 // This function is responsible for setting deletionTimestamp during gracefulDeletion,
 // other one for cascading deletions.
 func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.Object, options *metav1.DeleteOptions) (graceful, gracefulPending bool, err error) {
-	klog.Infof("debug: Enter BeforeDelete")
-
 	objectMeta, gvk, kerr := objectMetaAndKind(strategy, obj)
+	klog.Infof("debug: Enter BeforeDelete %v-%v",objectMeta.GetName(), objectMeta.GetResourceVersion())
+
 	if kerr != nil {
 		return false, false, kerr
 	}
@@ -134,17 +134,17 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 			return true, false, nil
 		}
 		// graceful deletion is pending, do nothing
-		klog.Infof("debug: %v-%v gracePeriod is set. return.",objectMeta.GetName(), objectMeta.GetResourceVersion())
 		options.GracePeriodSeconds = objectMeta.GetDeletionGracePeriodSeconds()
+		klog.Infof("debug: %v-%v gracePeriod is set %v. return.",objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
 		return false, true, nil
 	}
 
-	klog.Infof("debug: %v-%v option before check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), options.GracePeriodSeconds)
+	klog.Infof("debug: %v-%v option before check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
 	if !gracefulStrategy.CheckGracefulDelete(ctx, obj, options) {
 		klog.Infof("debug: %v-%v CheckGracefulDelete returns false.",objectMeta.GetName(), objectMeta.GetResourceVersion())
 		return false, false, nil
 	}
-	klog.Infof("debug: %v-%v option after check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), options.GracePeriodSeconds)
+	klog.Infof("debug: %v-%v option after check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
 
 	now := metav1.NewTime(metav1.Now().Add(time.Second * time.Duration(*options.GracePeriodSeconds)))
 	objectMeta.SetDeletionTimestamp(&now)
@@ -157,7 +157,7 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 		objectMeta.SetGeneration(objectMeta.GetGeneration() + 1)
 	}
 
-	klog.Infof("debug: Leave BeforeDelete")
+	klog.Infof("debug: Leave BeforeDelete %v-%v", objectMeta.GetName(), objectMeta.GetResourceVersion())
 	return true, false, nil
 }
 
