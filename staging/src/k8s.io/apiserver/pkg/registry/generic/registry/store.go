@@ -882,7 +882,7 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 		objectMeta.SetDeletionTimestamp(&metaNow)
 	}
 	var zero int64 = 0
-	klog.Infof("debug: SetDeletionGracePeriodSeconds to %v", zero)
+	klog.Infof("debug: SetDeletionGracePeriodSeconds %v-%v to %v", objectMeta.GetName(), objectMeta.GetResourceVersion(), zero)
 	objectMeta.SetDeletionGracePeriodSeconds(&zero)
 	klog.Infof("debug: Leave markAsDeleting for %v-%v, deletionTimeStamp %v", objectMeta.GetName(), objectMeta.GetResourceVersion(), objectMeta.GetDeletionTimestamp())
 	return nil
