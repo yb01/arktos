@@ -20,6 +20,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"k8s.io/klog"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -150,6 +151,7 @@ func BeforeUpdate(strategy RESTUpdateStrategy, ctx context.Context, obj, old run
 	}
 	// an update can never remove/change grace period seconds
 	if oldMeta.GetDeletionGracePeriodSeconds() != nil && objectMeta.GetDeletionGracePeriodSeconds() == nil {
+		klog.Infof("debug: SetDeletionGracePeriodSeconds to %v", *oldMeta.GetDeletionGracePeriodSeconds())
 		objectMeta.SetDeletionGracePeriodSeconds(oldMeta.GetDeletionGracePeriodSeconds())
 	}
 
