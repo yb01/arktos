@@ -141,11 +141,15 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 		return false, true, nil
 	}
 
-	klog.Infof("debug: %v-%v option before check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
+	// gracePeriod could be nil
+	if options.GracePeriodSeconds !=nil {
+		klog.Infof("debug: %v-%v option before check: %v", objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
+	}
 	if !gracefulStrategy.CheckGracefulDelete(ctx, obj, options) {
 		klog.Infof("debug: %v-%v CheckGracefulDelete returns false.",objectMeta.GetName(), objectMeta.GetResourceVersion())
 		return false, false, nil
 	}
+
 	klog.Infof("debug: %v-%v option after check: %v",objectMeta.GetName(), objectMeta.GetResourceVersion(), *options.GracePeriodSeconds)
 
 	now := metav1.NewTime(metav1.Now().Add(time.Second * time.Duration(*options.GracePeriodSeconds)))
