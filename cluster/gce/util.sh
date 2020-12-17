@@ -2352,9 +2352,6 @@ function kube-up() {
     write-cluster-name
     write-controller-config
     create-autoscaler-config
-    if [[ "${KUBERNETES_SCALEOUT_PROXY:-false}" == "true" ]]; then
-      create-proxy-vm
-    fi
     create-master
     create-nodes-firewall
     create-nodes-template

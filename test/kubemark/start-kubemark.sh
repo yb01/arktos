@@ -260,12 +260,14 @@ detect-project &> /dev/null
 
 # Start two tenant partition clusters and perseve their master url
 # Proxy server IP is the same as the first Tenant Cluster master IP, with port on 8888
+# Create one proxy per TP
 #
 if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   export ENABLE_APISERVER_INSECURE_PORT=true
   export KUBERNETES_TENANT_PARTITION=true  
   export KUBERNETES_SCALEOUT_PROXY=true
   export PARTITION_TO_UPDATE="tenant_partition_one"
+  create-proxy-vm
   create-kubemark-master
 
   MASTER_IP=$(grep server "${LOCAL_KUBECONFIG_TMP}" | awk -F "/" '{print $3}')
@@ -274,11 +276,17 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   export TENANT_SERVER_1="http://$(cat /tmp/master_reserved_ip.txt):8080"
   cp -f ${LOCAL_KUBECONFIG_TMP} ${TP1_KUBECONFIG_DIRECT}
   sed -i -e "s@http://${PROXY_RESERVED_IP}:8888@${TENANT_SERVER_1}@g" ${TP1_KUBECONFIG_DIRECT}
-  export KUBERNETES_SCALEOUT_PROXY=false
+
 
   if [[ "${SCALEOUT_CLUSTER_TWO_TPS:-false}" == "true" ]]; then
+    PROXY_NAME="testProxy2"
+    PROXY_TAG="testProxy2"
+
     export PARTITION_TO_UPDATE="tenant_partition_two"
+    create-proxy-vm
     create-kubemark-master
+    export PROXY_RESERVED_IP=$(echo ${MASTER_IP} | cut -d: -f1)
+    echo "VDBGG: PROXY_RESERVED_IP=$PROXY_RESERVED_IP"
     export TENANT_SERVER_2="http://$(cat /tmp/master_reserved_ip.txt):8080"
     cp -f ${LOCAL_KUBECONFIG_TMP} ${TP2_KUBECONFIG_DIRECT}
     sed -i -e "s@http://${PROXY_RESERVED_IP}:8888@${TENANT_SERVER_2}@g" ${TP2_KUBECONFIG_DIRECT}
@@ -287,6 +295,7 @@ fi
 
 echo "DBG: set tenant partition flag false"
 export KUBERNETES_TENANT_PARTITION=false
+export KUBERNETES_SCALEOUT_PROXY=false
 
 ## TODO: add validation of TP cluster here
 ##
