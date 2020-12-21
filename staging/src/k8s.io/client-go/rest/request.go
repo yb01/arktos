@@ -592,9 +592,11 @@ func (r Request) finalURLTemplate() url.URL {
 
 func (r *Request) tryThrottle() {
 	now := time.Now()
+	klog.V(4).Infof("Throttling request issued at %v, request: %s:%s", now, r.verb, r.URL().String())
 	if r.throttle != nil {
 		r.throttle.Accept()
 	}
+
 	if latency := time.Since(now); latency > longThrottleLatency {
 		klog.V(4).Infof("Throttling request took %v, request: %s:%s", latency, r.verb, r.URL().String())
 	}
@@ -663,7 +665,7 @@ func (r *Request) WatchWithSpecificDecoders(wrapperDecoderFn func(io.ReadCloser)
 		if result := r.transformResponse(resp, req); result.err != nil {
 			return nil, result.err
 		}
-		return nil, fmt.Errorf("for request %s, got status: %v", url, resp.StatusCode)
+/		return nil, fmt.Errorf("for request %s, got status: %v", url, resp.StatusCode)
 	}
 	wrapperDecoder := wrapperDecoderFn(resp.Body)
 

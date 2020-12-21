@@ -59,6 +59,7 @@ import (
 	storagev1beta1 "k8s.io/client-go/kubernetes/typed/storage/v1beta1"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
+	"k8s.io/klog"
 )
 
 type Interface interface {
@@ -339,6 +340,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 		configCopy := *currentConfig
 		if configCopy.RateLimiter == nil && configCopy.QPS > 0 {
 			configCopy.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(configCopy.QPS, configCopy.Burst)
+			klog.V(4).Infof("Debug: configCopy.RateLimiter: %v", configCopy.RateLimiter )
 		}
 		configShallowCopy.AddConfig(&configCopy)
 	}
