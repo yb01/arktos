@@ -592,8 +592,10 @@ func (r Request) finalURLTemplate() url.URL {
 
 func (r *Request) tryThrottle() {
 	now := time.Now()
-	klog.V(4).Infof("Throttling request issued at %v, request: %s:%s", now, r.verb, r.URL().String())
+	klog.V(4).Infof("Throttling request issued at %v, request: %s:%s. throttler: %v", now, r.verb, r.URL().String(), r.throttle)
+
 	if r.throttle != nil {
+		klog.V(4).Infof("Throttle QPS: %v", r.throttle.QPS())
 		r.throttle.Accept()
 	}
 
