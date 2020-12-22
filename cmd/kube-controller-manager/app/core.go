@@ -359,6 +359,7 @@ func startNamespaceController(ctx ControllerContext) (http.Handler, bool, error)
 	// including events), takes ~10 seconds by default.
 	nsKubeconfigs := ctx.ClientBuilder.ConfigOrDie("namespace-controller")
 	for _, nsKubeconfig := range nsKubeconfigs.GetAllConfigs() {
+		klog.V(4).Infof("Debug: before nsKubeconfig QPS: ", nsKubeconfig.QPS)
 		nsKubeconfig.QPS *= 20
 		nsKubeconfig.Burst *= 100
 	}
@@ -373,6 +374,7 @@ func startTenantController(ctx ControllerContext) (http.Handler, bool, error) {
 	// adjust these if there are feedback on the duration of tenant cleanup
 	tnKubeConfigs := ctx.ClientBuilder.ConfigOrDie("tenant-controller")
 	for _, tnKubeConfig := range tnKubeConfigs.GetAllConfigs() {
+		klog.V(4).Infof("Debug: before tnKubeConfig QPS: ", tnKubeConfig.QPS)
 		tnKubeConfig.QPS *= 20
 		tnKubeConfig.Burst *= 100
 	}

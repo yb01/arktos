@@ -84,6 +84,10 @@ func (b SimpleControllerClientBuilder) ClientOrDie(name string) clientset.Interf
 	if err != nil {
 		klog.Fatal(err)
 	}
+	klog.V(4).Infof("Debug: Return client: %v", client)
+	if client.CoreV1().RESTClient().GetRateLimiter() != nil {
+		klog.V(4).Infof("Debug: Return client: %v, with QPS: %v", client, client.CoreV1().RESTClient().GetRateLimiter().QPS())
+	}
 	return client
 }
 

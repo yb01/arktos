@@ -595,7 +595,7 @@ func (r *Request) tryThrottle() {
 	klog.V(4).Infof("Throttling request issued at %v, request: %s:%s. throttler: %v", now, r.verb, r.URL().String(), r.throttle)
 
 	if r.throttle != nil {
-		klog.V(4).Infof("Throttle QPS: %v", r.throttle.QPS())
+		klog.V(4).Infof("Throttle QPS: %v, URL: %s", r.throttle.QPS(), r.URL())
 		r.throttle.Accept()
 	}
 
