@@ -35,6 +35,8 @@ fi
 
 source "${KUBE_ROOT}/cluster/kubemark/util.sh"
 
+## TODO: rename those configs to ensure consistent in naming
+##
 KUBECTL="${KUBE_ROOT}/cluster/kubectl.sh"
 KUBEMARK_DIRECTORY="${KUBE_ROOT}/test/kubemark"
 RESOURCE_DIRECTORY="${KUBEMARK_DIRECTORY}/resources"
@@ -52,6 +54,8 @@ TP2_KUBECONFIG_DIRECT="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-2.direct"
 PROXY_KUBECONFIG_SAVED="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.proxy.saved"
 RP_KUBECONFIG_SAVED="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.rp.saved"
 
+## TODO: N TP support, make N tenant or 4 at least, with mizar, pupil ?
+##
 ### POC tenant yaml files
 ###
 TENANT1_YAML="${KUBE_ROOT}/perf-tests/clusterloader2/testing/arktos/tenant1.yaml"
@@ -190,6 +194,8 @@ function create-kube-hollow-node-resources {
   sed -i'' -e "s@{{HOLLOW_PROXY_MEM}}@${proxy_mem}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
   sed -i'' -e "s@{{kubemark_image_registry}}@${KUBEMARK_IMAGE_REGISTRY}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
   sed -i'' -e "s@{{kubemark_image_tag}}@${KUBEMARK_IMAGE_TAG}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
+## TODO: N RP support, need a redesign level of work here for hollow-node. this is for the node problem detector
+##
   sed -i'' -e "s@{{master_ip}}@${RESOURCE_SERVER}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
   sed -i'' -e "s@{{hollow_kubelet_params}}@${HOLLOW_KUBELET_TEST_ARGS}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
   sed -i'' -e "s@{{hollow_proxy_params}}@${HOLLOW_PROXY_TEST_ARGS}@g" "${RESOURCE_DIRECTORY}/hollow-node.yaml"
@@ -258,6 +264,8 @@ function start-hollow-nodes {
 
 detect-project &> /dev/null
 
+## TODO: make this a separated function for supporting N TPs
+##
 # Start two tenant partition clusters and perseve their master url
 # Proxy server IP is the same as the first Tenant Cluster master IP, with port on 8888
 # Create one proxy per TP
@@ -300,6 +308,8 @@ export KUBERNETES_SCALEOUT_PROXY=false
 ## TODO: add validation of TP cluster here
 ##
 
+## TODO: modify to support N TPs with N tenant_servers
+##
 if [[ "${SCALEOUT_CLUSTER_TWO_TPS:-false}" == "true" ]]; then
   export TENANT_SERVERS="${TENANT_SERVER_1},${TENANT_SERVER_2}"
 else
@@ -362,6 +372,8 @@ echo -e "Getting ETCD data partition status:" >&2
 "${KUBECTL}" --kubeconfig="${TP_ONE_KUBECONFIG}" get etcd
 echo
 
+## TODO: N TP support with creating N tenants, one for each TP
+##
 ### for multiple tenant tests, set up the tenants on desired TP clusters
 ###
 if [[ "${CREATE_TEST_TENANTS:-false}" == "true" ]]; then
