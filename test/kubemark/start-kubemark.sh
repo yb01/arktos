@@ -287,9 +287,6 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
 
 
   if [[ "${SCALEOUT_CLUSTER_TWO_TPS:-false}" == "true" ]]; then
-    PROXY_NAME="testProxy2"
-    PROXY_TAG="testProxy2"
-
     export PARTITION_TO_UPDATE="tenant_partition_two"
     create-proxy-vm
     create-kubemark-master
