@@ -2239,9 +2239,9 @@ function create-node-template() {
   fi
 
   local address=""
-#  if [[ ${GCE_PRIVATE_CLUSTER:-} == "true" ]]; then
-#    address="no-address"
-#  fi
+  if [[ ${GCE_PRIVATE_CLUSTER:-} == "true" ]]; then
+    address="no-address"
+  fi
 
   local network=$(make-gcloud-network-argument \
     "${NETWORK_PROJECT}" \
