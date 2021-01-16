@@ -258,7 +258,7 @@ type Dependencies struct {
 	EventClient             v1core.EventsGetter
 	HeartbeatClient         clientset.Interface
 	OnHeartbeatFailure      []func()
-	KubeClients             []clientset.Interface
+	KubeClients             clientset.Interface
 	ArktosExtClient         arktos.Interface
 	Mounter                 mount.Interface
 	OOMAdjuster             *oom.OOMAdjuster
@@ -315,11 +315,11 @@ func makePodSourceConfig(kubeCfg *kubeletconfiginternal.KubeletConfiguration, ku
 		}
 	}
 
-	for i, client := range kubeDeps.KubeClients {
+//	for i, client := range kubeDeps.KubeClients {
 		klog.Infof("Watching apiserver")
-		updatechannel = cfg.Channel(kubetypes.ApiserverSource + strconv.Itoa(i))
-		config.NewSourceApiserver(client, nodeName, updatechannel)
-	}
+		updatechannel = cfg.Channel(kubetypes.ApiserverSource + strconv.Itoa(0))
+		config.NewSourceApiserver(kubeDeps.KubeClients, nodeName, updatechannel)
+//	}
 
 	return cfg, nil
 }
@@ -445,7 +445,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	//
 	serviceIndexer := cache.NewIndexer(cache.MetaNamespaceKeyFunc, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 	if kubeDeps.KubeClients != nil {
-		serviceLW := cache.NewListWatchFromClient(kubeDeps.KubeClients[0].CoreV1(), "services", metav1.NamespaceAll, fields.Everything())
+		serviceLW := cache.NewListWatchFromClient(kubeDeps.KubeClients.CoreV1(), "services", metav1.NamespaceAll, fields.Everything())
 		r := cache.NewReflector(serviceLW, &v1.Service{}, serviceIndexer, 0)
 		go r.Run(wait.NeverStop)
 	}
@@ -667,7 +667,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	// TODO: runtimeClassManager to support multiple tenant partitions
 	//
 	if utilfeature.DefaultFeatureGate.Enabled(features.RuntimeClass) && kubeDeps.KubeClients != nil {
-		klet.runtimeClassManager = runtimeclass.NewManager(kubeDeps.KubeClients[0])
+		klet.runtimeClassManager = runtimeclass.NewManager(kubeDeps.KubeClients)
 	}
 
 	runtimeRegistry, err := runtimeregistry.NewKubeRuntimeRegistry(remoteRuntimeEndpoint)
@@ -776,7 +776,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	// TODO: arktos-scaleout: cert manager should be per Tenant partition
 	//
 	if kubeCfg.ServerTLSBootstrap && kubeDeps.TLSOptions != nil && utilfeature.DefaultFeatureGate.Enabled(features.RotateKubeletServerCertificate) {
-		klet.serverCertificateManager, err = kubeletcertificate.NewKubeletServerCertificateManager(klet.kubeClient[0], kubeCfg, klet.nodeName, klet.getLastObservedNodeAddresses, certDirectory)
+		klet.serverCertificateManager, err = kubeletcertificate.NewKubeletServerCertificateManager(klet.kubeClient, kubeCfg, klet.nodeName, klet.getLastObservedNodeAddresses, certDirectory)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize certificate manager: %v", err)
 		}
@@ -798,7 +798,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 
 	// TODO: tokenManager to support multiple tenant partitions
 	//
-	tokenManager := token.NewManager(kubeDeps.KubeClients[0])
+	tokenManager := token.NewManager(kubeDeps.KubeClients)
 
 	// NewInitializedVolumePluginMgr intializes some storageErrors on the Kubelet runtimeState (in csi_plugin.go init)
 	// which affects node ready status. This function must be called before Kubelet is initialized so that the Node
@@ -923,7 +923,7 @@ type Kubelet struct {
 
 	nodeName        types.NodeName
 	runtimeCache    kubecontainer.RuntimeCache
-	kubeClient      []clientset.Interface
+	kubeClient      clientset.Interface
 	heartbeatClient clientset.Interface
 	iptClient       utilipt.Interface
 	rootDirectory   string

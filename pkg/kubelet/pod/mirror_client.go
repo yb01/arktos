@@ -45,11 +45,11 @@ type MirrorClient interface {
 // the kubelet directly because they need to be in sync with the internal
 // pods.
 type basicMirrorClient struct {
-	apiserverClients []clientset.Interface
+	apiserverClients clientset.Interface
 }
 
 // NewBasicMirrorClient returns a new MirrorClient.
-func NewBasicMirrorClient(apiserverClients []clientset.Interface) MirrorClient {
+func NewBasicMirrorClient(apiserverClients clientset.Interface) MirrorClient {
 	return &basicMirrorClient{apiserverClients: apiserverClients}
 }
 

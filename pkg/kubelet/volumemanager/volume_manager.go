@@ -149,7 +149,7 @@ func NewVolumeManager(
 	podManager pod.Manager,
 	podStatusProvider status.PodStatusProvider,
 	rpKubeClient clientset.Interface,
-	tpKubeClients []clientset.Interface,
+	tpKubeClients clientset.Interface,
 	volumePluginMgr *volume.VolumePluginMgr,
 	kubeContainerRuntime container.Runtime,
 	mounter mount.Interface,
@@ -205,7 +205,7 @@ type volumeManager struct {
 	rpKubeClient clientset.Interface
 	// kubeClient is the kube API client used by DesiredStateOfWorldPopulator to
 	// communicate with the API server to fetch PV and PVC objects
-	kubeClient []clientset.Interface
+	kubeClient clientset.Interface
 
 	// volumePluginMgr is the volume plugin manager used to access volume
 	// plugins. It must be pre-initialized.

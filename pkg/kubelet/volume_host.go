@@ -72,7 +72,7 @@ func NewInitializedVolumePluginMgr(
 		// TODO: arktos-scale-out: use volume specific clientset
 		//
 		if kubelet.kubeClient != nil {
-			informerFactory = informers.NewSharedInformerFactory(kubelet.kubeClient[0], resyncPeriod)
+			informerFactory = informers.NewSharedInformerFactory(kubelet.kubeClient, resyncPeriod)
 			csiDriverInformer := informerFactory.Storage().V1beta1().CSIDrivers()
 			csiDriverLister = csiDriverInformer.Lister()
 			csiDriversSynced = csiDriverInformer.Informer().HasSynced
@@ -157,7 +157,7 @@ func (kvh *kubeletVolumeHost) GetPodPluginDir(podUID types.UID, pluginName strin
 
 func (kvh *kubeletVolumeHost) GetKubeClient() clientset.Interface {
 	//TODO: arktos-scale-out: get volume specific clientset
-	return kvh.kubelet.kubeClient[0]
+	return kvh.kubelet.kubeClient
 }
 
 func (kvh *kubeletVolumeHost) GetSubpather() subpath.Interface {

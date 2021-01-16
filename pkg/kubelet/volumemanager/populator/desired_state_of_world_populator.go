@@ -80,7 +80,7 @@ type DesiredStateOfWorldPopulator interface {
 //     that exist on this host
 // desiredStateOfWorld - the cache to populate
 func NewDesiredStateOfWorldPopulator(
-	kubeClients []clientset.Interface,
+	kubeClients clientset.Interface,
 	loopSleepDuration time.Duration,
 	getPodStatusRetryDuration time.Duration,
 	podManager pod.Manager,
@@ -107,7 +107,7 @@ func NewDesiredStateOfWorldPopulator(
 }
 
 type desiredStateOfWorldPopulator struct {
-	kubeClients               []clientset.Interface
+	kubeClients               clientset.Interface
 	loopSleepDuration         time.Duration
 	getPodStatusRetryDuration time.Duration
 	podManager                pod.Manager

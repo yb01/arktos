@@ -181,19 +181,19 @@ func run(config *hollowNodeConfig) {
 		klog.Fatalf("Missing TenantServers. Exiting.")
 	}
 
-	numberTenantPartitions := len(config.TenantServers)
-	client := make([]clientset.Interface, numberTenantPartitions)
-	for i := 0; i < len(client); i++ {
+	//numberTenantPartitions := len(config.TenantServers)
+	// client := make([]clientset.Interface, numberTenantPartitions)
+//	for i := 0; i < 1; i++ {
 		tenantCfg := restclient.CopyConfigs(clientConfigs)
 		for _, cfg := range tenantCfg.GetAllConfigs() {
-			cfg.Host = config.TenantServers[i]
+			cfg.Host = config.TenantServers[0]
 		}
-		clientFromConfig, err := clientset.NewForConfig(tenantCfg)
+		client, err := clientset.NewForConfig(tenantCfg)
 		if err != nil {
 			klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
 		}
-		client[i] = clientFromConfig
-	}
+	//	client := clientFromConfig
+//	}
 
 	if config.Morph == "kubelet" {
 		f, c := kubemark.GetHollowKubeletConfig(config.createHollowKubeletOptions())

@@ -41,7 +41,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/klog"
 
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,7 +62,7 @@ import (
 	"k8s.io/client-go/util/certificate"
 	"k8s.io/client-go/util/connrotation"
 	"k8s.io/client-go/util/keyutil"
-	cloudprovider "k8s.io/cloud-provider"
+	"k8s.io/cloud-provider"
 	cliflag "k8s.io/component-base/cli/flag"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/kubernetes/cmd/kubelet/app/options"
@@ -607,7 +607,7 @@ func run(s *options.KubeletServer, kubeDeps *kubelet.Dependencies, stopCh <-chan
 			s.TenantServers[0] = clientConfigs.GetConfig().Host
 		}
 
-		kubeDeps.KubeClients = make([]clientset.Interface, len(s.TenantServers))
+		//kubeDeps.KubeClients = make([]clientset.Interface, len(s.TenantServers))
 
 		for i, tenantServer := range s.TenantServers {
 			clientConfigTenantAPI := *clientConfigs
@@ -616,11 +616,12 @@ func run(s *options.KubeletServer, kubeDeps *kubelet.Dependencies, stopCh <-chan
 				klog.V(6).Infof("clientConfigTenantAPI.Host: %v", cfg.Host)
 			}
 
-			kubeDeps.KubeClients[i], err = clientset.NewForConfig(&clientConfigTenantAPI)
+			kubeDeps.KubeClients, err = clientset.NewForConfig(&clientConfigTenantAPI)
 			if err != nil {
 				return fmt.Errorf("failed to initialize kubelet client: %v", err)
 			}
 
+			klog.V(7).Infof("i=%d", i)
 		}
 
 		arktosExtClientConfig := *clientConfigs
@@ -653,7 +654,7 @@ func run(s *options.KubeletServer, kubeDeps *kubelet.Dependencies, stopCh <-chan
 	//
 	if utilfeature.DefaultFeatureGate.Enabled(features.DynamicKubeletConfig) && len(s.DynamicConfigDir.Value()) > 0 &&
 		kubeDeps.KubeletConfigController != nil && !standaloneMode && !s.RunOnce {
-		if err := kubeDeps.KubeletConfigController.StartSync(kubeDeps.KubeClients[0], kubeDeps.EventClient, string(nodeName)); err != nil {
+		if err := kubeDeps.KubeletConfigController.StartSync(kubeDeps.KubeClients, kubeDeps.EventClient, string(nodeName)); err != nil {
 			return err
 		}
 	}
@@ -661,7 +662,7 @@ func run(s *options.KubeletServer, kubeDeps *kubelet.Dependencies, stopCh <-chan
 	//TODO: auth for both Tenant and Resource servers
 	//
 	if kubeDeps.Auth == nil {
-		auth, err := BuildAuth(nodeName, kubeDeps.KubeClients[0], s.KubeletConfiguration)
+		auth, err := BuildAuth(nodeName, kubeDeps.KubeClients, s.KubeletConfiguration)
 		if err != nil {
 			return err
 		}

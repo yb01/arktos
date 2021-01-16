@@ -50,18 +50,19 @@ func RegisterTenantSourceServer(source string, ref *v1.Pod) {
 	}
 }
 
-func GetTPClient(kubeClients []clientset.Interface, tenant string) clientset.Interface {
-	Tenant2apiLock.RLock()
-	defer Tenant2apiLock.RUnlock()
-	var client clientset.Interface
-	pick, ok := Tenant2api[strings.ToLower(tenant)]
-	if len(kubeClients) == 1 || !ok { // !ok to force a retry
-		client = kubeClients[0]
-	} else {
-		client = kubeClients[pick]
-	}
-	klog.V(4).Infof("tenant %s using client # %d", tenant, pick)
-	return client
+func GetTPClient(kubeClients clientset.Interface, tenant string) clientset.Interface {
+	return kubeClients
+	//Tenant2apiLock.RLock()
+	//defer Tenant2apiLock.RUnlock()
+	//var client clientset.Interface
+	//pick, ok := Tenant2api[strings.ToLower(tenant)]
+	//if len(kubeClients) == 1 || !ok { // !ok to force a retry
+	//	client = kubeClients[0]
+	//} else {
+	//	client = kubeClients[pick]
+	//}
+	//klog.V(4).Infof("tenant %s using client # %d", tenant, pick)
+	//return client
 }
 
 // FromApiserverCache modifies <opts> so that the GET request will

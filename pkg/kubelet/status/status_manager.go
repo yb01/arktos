@@ -62,7 +62,7 @@ type podStatusSyncRequest struct {
 // Updates pod statuses in apiserver. Writes only when new status has changed.
 // All methods are thread-safe.
 type manager struct {
-	kubeClient []clientset.Interface
+	kubeClient clientset.Interface
 	podManager kubepod.Manager
 	// Map from pod UID to sync status of the corresponding pod.
 	podStatuses      map[types.UID]versionedPodStatus
@@ -114,7 +114,7 @@ type Manager interface {
 
 const syncPeriod = 10 * time.Second
 
-func NewManager(kubeClient []clientset.Interface, podManager kubepod.Manager, podDeletionSafety PodDeletionSafetyProvider) Manager {
+func NewManager(kubeClient clientset.Interface, podManager kubepod.Manager, podDeletionSafety PodDeletionSafetyProvider) Manager {
 	return &manager{
 		kubeClient:        kubeClient,
 		podManager:        podManager,
@@ -147,7 +147,7 @@ func (m *manager) Start() {
 	// Don't start the status manager if we don't have a client. This will happen
 	// on the master, where the kubelet is responsible for bootstrapping the pods
 	// of the master components.
-	if len(m.kubeClient) == 0 {
+	if m.kubeClient == nil {
 		klog.Infof("Kubernetes client is nil, not starting status manager.")
 		return
 	}
