@@ -74,6 +74,26 @@ for k,v in yaml.load(sys.stdin).iteritems():
   )
 }
 
+## TODO: use a counter passed down from the kube-env to support multiple TPs gracefully
+function download-tenantpartition-kubeconfigs {
+  local -r dest="$1"
+  echo "Downloading tenant partition kubeconfig file, if it exists"
+  (
+    umask 077
+    local -r tmp_tenantpartition_kubeconfig="/tmp/tenant_parition_kubeconfig"
+    if curl --fail --retry 5 --retry-delay 3 ${CURL_RETRY_CONNREFUSED} --silent --show-error \
+        -H "X-Google-Metadata-Request: True" \
+        -o "${tmp_tenantpartition_kubeconfig}" \
+        http://metadata.google.internal/computeMetadata/v1/instance/attributes/tp-1; then
+      # only write to the final location if curl succeeds
+      mv "${tmp_tenantpartition_kubeconfig}" "${dest}"
+    else
+      echo "== Failed to download required tenant partition config file from metadata server =="
+      exit 1
+    fi
+  )
+}
+
 function download-kubelet-config {
   local -r dest="$1"
   echo "Downloading Kubelet config file, if it exists"
@@ -581,6 +601,11 @@ source "${KUBE_HOME}/kube-env"
 download-kubelet-config "${KUBE_HOME}/kubelet-config.yaml"
 download-controller-config "${KUBE_HOME}/controllerconfig.json"
 download-apiserver-config "${KUBE_HOME}/apiserver.config"
+
+if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
+  echo "DBG: download tenant partition kubeconfigs"
+  download-tenantpartition-kubeconfigs  "${KUBE_HOME}/tp-1-kubeconfig"
+fi
 
 # master certs
 if [[ "${KUBERNETES_MASTER:-}" == "true" ]]; then

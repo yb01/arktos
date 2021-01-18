@@ -17,6 +17,8 @@
 
 # Script that destroys Kubemark cluster and deletes all master resources.
 
+export ENABLE_APISERVER_INSECURE_PORT="${ENABLE_APISERVER_INSECURE_PORT:-false}"
+
 KUBE_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
 
 source "${KUBE_ROOT}/test/kubemark/skeleton/util.sh"
@@ -45,7 +47,6 @@ rm -rf "${RESOURCE_DIRECTORY}/addons" \
     "${RESOURCE_DIRECTORY}/hollow-node.yaml"  &> /dev/null || true
 
 if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
-  export ENABLE_APISERVER_INSECURE_PORT=true
   export KUBERNETES_TENANT_PARTITION=true
   for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
   do

@@ -2361,15 +2361,17 @@ function start-workload-controller-manager {
 #   DOCKER_REGISTRY
 function start-kube-scheduler {
   echo "Start kubernetes scheduler"
-  if [[ "${ENABLE_APISERVER_INSECURE_PORT:-false}" == "true" ]]; then
-    if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
-      create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN} "${PROXY_RESERVED_IP}" "8888" "http"
-    else
-      create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN} "localhost" "8080" "http"
-    fi
+  ## scheduler, for now, always talk to the proxy if it is the tenant partition cluster
+  if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
+    create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN} "${PROXY_RESERVED_IP}" "8888" "http"
   else
-    create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN}
+    if [[ "${ENABLE_APISERVER_INSECURE_PORT:-false}" == "true" ]]; then
+      create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN} "localhost" "8080" "http"
+    else
+      create-kubeconfig "kube-scheduler" ${KUBE_SCHEDULER_TOKEN}
+    fi
   fi
+
   prepare-log-file /var/log/kube-scheduler.log
 
   # Calculate variables and set them in the manifest.

@@ -3754,6 +3754,9 @@ function check-cluster() {
    create-kubeconfig
   )
 
+  echo "DBG: ================ KUBECONFIG =============== "
+  cat ${KUBECONFIG}
+
   # ensures KUBECONFIG is set
   get-kubeconfig-basicauth
 

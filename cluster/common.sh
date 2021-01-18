@@ -67,6 +67,7 @@ FALSE="false"
 #   KUBE_KEY
 #   CA_CERT
 function create-kubeconfig() {
+  echo "DBG: in first create-kubeconfig function"
   KUBECONFIG=${KUBECONFIG:-$DEFAULT_KUBECONFIG}
   local kubectl="${KUBE_ROOT}/cluster/kubectl.sh"
   SECONDARY_KUBECONFIG=${SECONDARY_KUBECONFIG:-}
@@ -91,22 +92,26 @@ function create-kubeconfig() {
       "--server=${KUBE_SERVER:-https://${KUBE_MASTER_IP}}"
   )
 
-  if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
-    if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
-      if [[ "${PROXY_RESERVED_IP}" == "" ]]; then
-        echo "Fatal Error: proxy IP is empty!"
-        exit 1
+  echo "DBG: BEFORE set --server in cluster args for insecure port support"
+  if [[ "${ENABLE_APISERVER_INSECURE_PORT:-false}" == "true" ]]; then
+    echo "DBG: set --server in cluster args for insecure port support"
+    if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
+      if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
+        if [[ "${PROXY_RESERVED_IP}" == "" ]]; then
+          echo "Fatal Error: proxy IP is empty!"
+          exit 1
+        fi
+        cluster_args=(
+           "--server=${KUBE_SERVER:-http://${PROXY_RESERVED_IP}}:8888"
+        )
       fi
-      cluster_args=(
-          "--server=${KUBE_SERVER:-http://${PROXY_RESERVED_IP}}:8888"
-       )
+      if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
+        cluster_args=(
+            "--server=${KUBE_SERVER:-http://${KUBE_MASTER_IP}}:8080"
+        )
+      fi
     fi
-    if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
-      cluster_args=(
-          "--server=${KUBE_SERVER:-http://${KUBE_MASTER_IP}}:8080"
-       )
-    fi
-  fi    
+  fi
 
   if [[ -z "${CA_CERT:-}" ]]; then
     cluster_args+=("--insecure-skip-tls-verify=true")
@@ -1052,6 +1057,8 @@ EOF
 #   KUBE_KEY
 #   CA_CERT
 function create-kubeconfig() {
+  echo "DBG: in second create-kubeconfig function"
+
   KUBECONFIG=${KUBECONFIG:-$DEFAULT_KUBECONFIG}
   local kubectl="${KUBE_ROOT}/cluster/kubectl.sh"
   SECONDARY_KUBECONFIG=${SECONDARY_KUBECONFIG:-}
@@ -1075,21 +1082,24 @@ function create-kubeconfig() {
   local cluster_args=(
       "--server=${KUBE_SERVER:-https://${KUBE_MASTER_IP}}"
   )
-
-  if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
-    if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
-      if [[ "${PROXY_RESERVED_IP}" == "" ]]; then
-        echo "Fatal Error: proxy IP is empty!"
-        exit 1
+  echo "DBG: BEFORE set --server in cluster args for insecure port support"
+  if [[ "${ENABLE_APISERVER_INSECURE_PORT:-false}" == "true" ]]; then
+    echo "DBG: set --server in cluster args for insecure port support"
+    if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
+      if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
+        if [[ "${PROXY_RESERVED_IP}" == "" ]]; then
+          echo "Fatal Error: proxy IP is empty!"
+          exit 1
+        fi
+        cluster_args=(
+              "--server=${KUBE_SERVER:-http://${PROXY_RESERVED_IP}}:8888"
+           )
       fi
-      cluster_args=(
-          "--server=${KUBE_SERVER:-http://${PROXY_RESERVED_IP}}:8888"
-       )
-    fi
-    if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
-      cluster_args=(
-          "--server=${KUBE_SERVER:-http://${KUBE_MASTER_IP}}:8080"
-       )
+      if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
+        cluster_args=(
+           "--server=${KUBE_SERVER:-http://${KUBE_MASTER_IP}}:8080"
+        )
+      fi
     fi
   fi
     

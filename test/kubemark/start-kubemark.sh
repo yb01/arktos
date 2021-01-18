@@ -21,6 +21,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+export ENABLE_APISERVER_INSECURE_PORT="${ENABLE_APISERVER_INSECURE_PORT:-false}"
+
 TMP_ROOT="$(dirname "${BASH_SOURCE[@]}")/../.."
 KUBE_ROOT=$(readlink -e "${TMP_ROOT}" 2> /dev/null || perl -MCwd -e 'print Cwd::abs_path shift' "${TMP_ROOT}")
 
@@ -274,8 +276,9 @@ detect-project &> /dev/null
 
 rm /tmp/saved_tenant_ips.txt >/dev/null 2>&1 || true
 
+MASTER_METADATA=""
+
 if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
-  export ENABLE_APISERVER_INSECURE_PORT=true
   export KUBERNETES_TENANT_PARTITION=true  
   export KUBERNETES_SCALEOUT_PROXY=true
 
@@ -296,12 +299,22 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
     fi
 
     cp -f ${LOCAL_KUBECONFIG_TMP} "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}.direct"
+    if [[ ${tp_num} == 1 ]]; then
+      MASTER_METADATA="tp-${tp_num}=${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}.direct"
+    else
+      MASTER_METADATA=${MASTER_METADATA},"tp-${tp_num}=${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}.direct"
+    fi
+
     sed -i -e "s@http://${PROXY_RESERVED_IP}:8888@${TP_SERVER}@g" "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}.direct"
     export KUBERNETES_SCALEOUT_PROXY=false
   done
 fi
 
 echo "DBG: tenant-servers:  ${TENANT_SERVERS}"
+
+export KUBE_MASTER_EXTRA_METADATA="${MASTER_METADATA}"
+
+echo "DBG: KUBE_MASTER_EXTRA_METADATA:  ${KUBE_MASTER_EXTRA_METADATA}"
 
 if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   echo "DBG: set tenant partition flag false"
