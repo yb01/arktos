@@ -79,7 +79,7 @@ function download-tenantpartition-kubeconfigs {
   local -r dest="$1"
   echo "Downloading tenant partition kubeconfig file, if it exists"
   (
-    umask 077
+    umask 022
     local -r tmp_tenantpartition_kubeconfig="/tmp/tenant_parition_kubeconfig"
     if curl --fail --retry 5 --retry-delay 3 ${CURL_RETRY_CONNREFUSED} --silent --show-error \
         -H "X-Google-Metadata-Request: True" \
