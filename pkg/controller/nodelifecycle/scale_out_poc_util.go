@@ -42,6 +42,34 @@ type TenantPartitionManager struct {
 	DaemonSetStore    appsv1listers.DaemonSetLister
 }
 
+func GetClientFromFile(kubeconfigPath string) (clientset.Interface, error) {
+
+	clientConfig, err := createClientConfigFromFile(kubeconfigPath)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := clientset.NewForConfig(clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error while creating clientset with %s, error %v", kubeconfigPath, err.Error())
+	}
+
+	return client, nil
+}
+
+func createClientConfigFromFile(kubeconfigPath string) (*rest.Config, error) {
+	clientConfigs, err := clientcmd.LoadFromFile(kubeconfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading kubeconfig from file %v: %v", kubeconfigPath, err)
+	}
+	configs, err := clientcmd.NewDefaultClientConfig(*clientConfigs, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error while creating kubeconfig: %v", err)
+	}
+
+	return configs, nil
+}
+
 func GetInsecureClient(ipAddr string) (clientset.Interface, error) {
 	cfg, err := GetInsecureConfig(ipAddr)
 	if err != nil {
@@ -84,6 +112,22 @@ current-context: node-controller-context
 	}
 
 	return clientcmd.BuildConfigFromFlags("", tmpfile.Name())
+}
+
+func GetTenantPartitionClientsFromFiles(kubeconfigFiles []string) ([]clientset.Interface, error) {
+
+	clients := []clientset.Interface{}
+
+	for _, kubeconfig := range kubeconfigFiles {
+		client, err := GetClientFromFile(kubeconfig)
+		if err != nil {
+			return nil, fmt.Errorf("Error in getting client for kubeconfi (%v) ： %v", kubeconfig, err)
+		}
+
+		clients = append(clients, client)
+	}
+
+	return clients, nil
 }
 
 func GetTenantPartitionClients(tenantServers []string) ([]clientset.Interface, error) {
@@ -135,7 +179,7 @@ func GetTenantPartitionManagersFromKubeClients(clients []clientset.Interface, st
 }
 
 func GetTenantPartitionManagersFromServerNames(tenantServers []string, stop <-chan struct{}) ([]*TenantPartitionManager, error) {
-	clients, err := GetTenantPartitionClients(tenantServers)
+	clients, err := GetTenantPartitionClientsFromFiles(tenantServers)
 	if err != nil {
 		return nil, err
 	}

@@ -602,9 +602,13 @@ download-kubelet-config "${KUBE_HOME}/kubelet-config.yaml"
 download-controller-config "${KUBE_HOME}/controllerconfig.json"
 download-apiserver-config "${KUBE_HOME}/apiserver.config"
 
+## TODO: loop to download all TP configs
+#
 if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
   echo "DBG: download tenant partition kubeconfigs"
-  download-tenantpartition-kubeconfigs  "${KUBE_HOME}/tp-1-kubeconfig"
+  tpconfigs="/etc/srv/kubernetes/tp-kubeconfigs"
+  mkdir -p ${tpconfigs}
+  download-tenantpartition-kubeconfigs  "${tpconfigs}/tp-1-kubeconfig"
 fi
 
 # master certs

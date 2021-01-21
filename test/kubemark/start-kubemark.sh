@@ -292,10 +292,11 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
     echo "VDBGG: PROXY_RESERVED_IP=$PROXY_RESERVED_IP"
     
     TP_SERVER="http://$(cat /tmp/master_reserved_ip.txt):8080"
+    # TODO: fix the hardcoded path
     if [[ ${tp_num} == 1 ]]; then
-      export TENANT_SERVERS=${TP_SERVER}
+      export TENANT_SERVERS="/etc/srv/kubernetes/tp-kubeconfigs/tp-${tp_num}-kubeconfig"
     else
-      export TENANT_SERVERS="${TENANT_SERVERS},${TP_SERVER}"
+      export TENANT_SERVERS="${TENANT_SERVERS},/etc/srv/kubernetes/tp-kubeconfigs/tp-${tp_num}-kubeconfig"
     fi
 
     cp -f ${LOCAL_KUBECONFIG_TMP} "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}.direct"
