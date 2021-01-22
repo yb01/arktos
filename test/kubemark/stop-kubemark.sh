@@ -61,10 +61,12 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   delete-kubemark-master
   rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark-rp"
   rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.proxy"
-  rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark-tp"
+  rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark-tp*"
   rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.*.direct"
   rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.*.saved"
-  rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.*.tmp"
+  rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tmp"
+  rm -rf "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.kubemark-proxy"
+  rm -rf "${RESOURCE_DIRECTORY}/haproxy.cfg.tmp"
 else
   delete-kubemark-master
 fi

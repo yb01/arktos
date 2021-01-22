@@ -2374,7 +2374,7 @@ function kube-up() {
       echo "Local_kubeconfig_tmp not set"
     else
       cp -f ${KUBECONFIG} ${LOCAL_KUBECONFIG_TMP}
-      echo "DBG:" grep -i "server:" ${LOCAL_KUBECONFIG_TMP}
+      echo "DBG:" $(grep -i "server:" ${LOCAL_KUBECONFIG_TMP})
     fi
 
   fi
@@ -2784,6 +2784,11 @@ function create-proxy-vm() {
       echo "${result}" >&2
       export PROXY_RESERVED_IP
       export PROXY_RESERVED_INTERNAL_IP
+
+      # pass back the proxy reserved IP
+      echo ${PROXY_RESERVED_IP} > /tmp/proxy-reserved-ip.txt
+      cat /tmp/proxy-reserved-ip.txt
+
       return 0
     else
       echo "${result}" >&2

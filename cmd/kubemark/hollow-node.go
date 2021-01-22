@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -100,7 +101,11 @@ func (c *hollowNodeConfig) addFlags(fs *pflag.FlagSet) {
 }
 
 func (c *hollowNodeConfig) createClientConfigFromFile() (*restclient.Config, error) {
-	clientConfigs, err := clientcmd.LoadFromFile(c.KubeconfigPath)
+	return c.createClientConfigFromSpecificFile(c.KubeconfigPath)
+}
+
+func (c *hollowNodeConfig) createClientConfigFromSpecificFile(kubeconfigFile string) (*restclient.Config, error) {
+	clientConfigs, err := clientcmd.LoadFromFile(kubeconfigFile)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading kubeconfig from file %v: %v", c.KubeconfigPath, err)
 	}
@@ -181,41 +186,73 @@ func run(config *hollowNodeConfig) {
 		klog.Fatalf("Missing TenantServers. Exiting.")
 	}
 
+	// TODO: set this from the hollow node env variable
+	enableInSecurePorts := false
+
 	numberTenantPartitions := len(config.TenantServers)
 	client := make([]clientset.Interface, numberTenantPartitions)
 	for i := 0; i < len(client); i++ {
-		tenantCfg := restclient.CopyConfigs(clientConfigs)
-		for _, cfg := range tenantCfg.GetAllConfigs() {
-			cfg.Host = config.TenantServers[i]
+		if enableInSecurePorts == false {
+			kubeconfigFile := config.TenantServers[i]
+			klog.V(2).Infof("create client config from file: %s", kubeconfigFile)
+			config, err := config.createClientConfigFromSpecificFile(path.Join("/kubeconfig", kubeconfigFile))
+			if err != nil {
+				klog.Fatalf("Failed to create a client config: %v. Exiting.", err)
+			}
+
+			clientFromConfig, err := clientset.NewForConfig(config)
+			if err != nil {
+				klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
+			}
+			client[i] = clientFromConfig
+		} else {
+			tenantCfg := restclient.CopyConfigs(clientConfigs)
+			for _, cfg := range tenantCfg.GetAllConfigs() {
+				cfg.Host = config.TenantServers[i]
+			}
+			clientFromConfig, err := clientset.NewForConfig(tenantCfg)
+			if err != nil {
+				klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
+			}
+			client[i] = clientFromConfig
 		}
-		clientFromConfig, err := clientset.NewForConfig(tenantCfg)
-		if err != nil {
-			klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
-		}
-		client[i] = clientFromConfig
 	}
 
 	if config.Morph == "kubelet" {
 		f, c := kubemark.GetHollowKubeletConfig(config.createHollowKubeletOptions())
 
-		heartbeatClientConfigs := restclient.CopyConfigs(clientConfigs)
-		for _, heartbeatClientConfig := range heartbeatClientConfigs.GetAllConfigs() {
-			heartbeatClientConfig.Timeout = c.NodeStatusUpdateFrequency.Duration
-			// if the NodeLease feature is enabled, the timeout is the minimum of the lease duration and status update frequency
-			if utilfeature.DefaultFeatureGate.Enabled(features.NodeLease) {
-				leaseTimeout := time.Duration(c.NodeLeaseDurationSeconds) * time.Second
-				if heartbeatClientConfig.Timeout > leaseTimeout {
-					heartbeatClientConfig.Timeout = leaseTimeout
+		var heartbeatClient *clientset.Clientset
+		if enableInSecurePorts == false {
+			klog.V(2).Infof("create client config from file: %s", config.ResourceServer)
+			config, err := config.createClientConfigFromSpecificFile(path.Join("/kubeconfig", config.ResourceServer))
+			if err != nil {
+				klog.Fatalf("Failed to create a client config: %v. Exiting.", err)
+			}
+
+			heartbeatClient, err = clientset.NewForConfig(config)
+			if err != nil {
+				klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
+			}
+		} else {
+			heartbeatClientConfigs := restclient.CopyConfigs(clientConfigs)
+			for _, heartbeatClientConfig := range heartbeatClientConfigs.GetAllConfigs() {
+				heartbeatClientConfig.Timeout = c.NodeStatusUpdateFrequency.Duration
+				// if the NodeLease feature is enabled, the timeout is the minimum of the lease duration and status update frequency
+				if utilfeature.DefaultFeatureGate.Enabled(features.NodeLease) {
+					leaseTimeout := time.Duration(c.NodeLeaseDurationSeconds) * time.Second
+					if heartbeatClientConfig.Timeout > leaseTimeout {
+						heartbeatClientConfig.Timeout = leaseTimeout
+					}
+				}
+				heartbeatClientConfig.QPS = float32(-1)
+				if heartbeatClientConfig.Host != config.ResourceServer {
+					heartbeatClientConfig.Host = config.ResourceServer
 				}
 			}
-			heartbeatClientConfig.QPS = float32(-1)
-			if heartbeatClientConfig.Host != config.ResourceServer {
-				heartbeatClientConfig.Host = config.ResourceServer
+			heartbeatClient, err = clientset.NewForConfig(heartbeatClientConfigs)
+			if err != nil {
+				klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
 			}
-		}
-		heartbeatClient, err := clientset.NewForConfig(heartbeatClientConfigs)
-		if err != nil {
-			klog.Fatalf("Failed to create a ClientSet: %v. Exiting.", err)
 		}
 
 		cadvisorInterface := &cadvisortest.Fake{
