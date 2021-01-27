@@ -1698,7 +1698,11 @@ function create-certs {
       sans="${sans}IP:${extra},"
     fi
   done
-  sans="${sans}IP:${service_ip},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.${DNS_DOMAIN},DNS:${MASTER_NAME}"
+
+  SCALEOUT_PROXY_IP=$(cat /tmp/proxy-reserved-ip.txt)
+  echo "SCALEOUT_PROXY_IP: ${SCALEOUT_PROXY_IP}"
+
+  sans="${sans}IP:${service_ip},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.${DNS_DOMAIN},DNS:${MASTER_NAME},IP:${SCALEOUT_PROXY_IP}"
 
   echo "Generating certs for alternate-names: ${sans}"
 
