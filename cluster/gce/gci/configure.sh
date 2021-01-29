@@ -74,7 +74,6 @@ for k,v in yaml.load(sys.stdin).iteritems():
   )
 }
 
-## TODO: use a counter passed down from the kube-env to support multiple TPs gracefully
 function download-tenantpartition-kubeconfigs {
   local -r dest="$1"
   echo "Downloading tenant partition kubeconfig file, if it exists"
@@ -602,13 +601,16 @@ download-kubelet-config "${KUBE_HOME}/kubelet-config.yaml"
 download-controller-config "${KUBE_HOME}/controllerconfig.json"
 download-apiserver-config "${KUBE_HOME}/apiserver.config"
 
-## TODO: loop to download all TP configs
-#
 if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
-  echo "DBG: download tenant partition kubeconfigs"
   tpconfigs="/etc/srv/kubernetes/tp-kubeconfigs"
   mkdir -p ${tpconfigs}
-  download-tenantpartition-kubeconfigs  "${tpconfigs}/tp-1-kubeconfig"
+
+  for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+  do
+    config="${tpconfigs}/tp-${tp_num}-kubeconfig"
+    echo "DBG: download tenant partition kubeconfig: ${config}"
+    download-tenantpartition-kubeconfigs  "${config}"
+  done
 fi
 
 # master certs

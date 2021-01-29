@@ -49,7 +49,7 @@ export SCALEOUT_TP_COUNT="${SCALEOUT_TP_COUNT:-1}"
 ### those are used for targeted operations such as tenant creation etc on
 ### desired cluster directly
 ###
-PROXY_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark-proxy"
+RP_PROXY_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark-rp-proxy"
 RP_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark-rp"
 TP_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark-tp"
 
@@ -137,15 +137,22 @@ function create-kube-hollow-node-resources {
   # TODO(https://github.com/kubernetes/kubernetes/issues/79883): Migrate all components to separate credentials.
   # TODO: loop for all TP clusters
   #
-  "${KUBECTL}" create secret generic "kubeconfig" --type=Opaque --namespace="kubemark" \
-    --from-file=kubelet.kubeconfig="${TP_KUBECONFIG}" \
-    --from-file=kubeproxy.kubeconfig="${TP_KUBECONFIG}" \
-    --from-file=npd.kubeconfig="${RP_KUBECONFIG}" \
-    --from-file=heapster.kubeconfig="${TP_KUBECONFIG}" \
-    --from-file=cluster_autoscaler.kubeconfig="${RP_KUBECONFIG}" \
-    --from-file=dns.kubeconfig="${TP_KUBECONFIG}" \
-    --from-file=tp1.kubeconfig="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-1" \
-    --from-file=rp.kubeconfig="${RP_KUBECONFIG}"
+  create_secret_args="--from-file=kubelet.kubeconfig="${TP_KUBECONFIG}
+  create_secret_args=${create_secret_args}"  --from-file=kubeproxy.kubeconfig="${TP_KUBECONFIG}
+  create_secret_args=${create_secret_args}"  --from-file=npd.kubeconfig="${RP_KUBECONFIG}
+  create_secret_args=${create_secret_args}"  --from-file=heapster.kubeconfig="${TP_KUBECONFIG}
+  create_secret_args=${create_secret_args}" --from-file=cluster_autoscaler.kubeconfig="${RP_KUBECONFIG}
+  create_secret_args=${create_secret_args}" --from-file=dns.kubeconfig="${TP_KUBECONFIG}
+
+  for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+  do
+    create_secret_args=${create_secret_args}" --from-file=tp${tp_num}.kubeconfig="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}
+  done
+
+  create_secret_args=${create_secret_args}" --from-file=rp.kubeconfig="${RP_KUBECONFIG}
+
+
+  "${KUBECTL}" create secret generic "kubeconfig" --type=Opaque --namespace="kubemark" ${create_secret_args}
 
   # Create addon pods.
   # Heapster.
@@ -296,8 +303,10 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
     export PROXY_RESERVED_IP=$(cat /tmp/proxy-reserved-ip.txt)
     echo "DBG: PROXY_RESERVED_IP=$PROXY_RESERVED_IP"
     
-   # TP_SERVER="http://$(cat /tmp/master_reserved_ip.txt):8080"
+    export TP_${tp_num}_RESERVED_IP=$(cat /tmp/master_reserved_ip.txt)
+
     # TODO: fix the hardcoded path
+    # the path is what the controller used in master init script
     if [[ ${tp_num} == 1 ]]; then
       export TENANT_SERVERS="/etc/srv/kubernetes/tp-kubeconfigs/tp-${tp_num}-kubeconfig"
     else
@@ -305,6 +314,7 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
     fi
 
     cp -f ${LOCAL_KUBECONFIG_TMP} "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}"
+
     if [[ ${tp_num} == 1 ]]; then
       MASTER_METADATA="tp-${tp_num}=${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}"
     else
@@ -360,10 +370,19 @@ echo "Kubeconfig for kubemark master is written in ${LOCAL_KUBECONFIG_TMP}"
 ### internally the TP configures are set with proxy URL, simply copy for POC phase for now
 ###
 
-## fix: proxy is broken here, since TP is no longer exists
-#
-cp -f ${RP_KUBECONFIG} ${PROXY_KUBECONFIG}
-sed -i -e "s@${RESOURCE_SERVER_IP}@${PROXY_RESERVED_IP}@g" "${PROXY_KUBECONFIG}"
+for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+do
+  tp_config="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}"
+  tp_config_proxy="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}-proxy"
+  cp -f ${tp_config} ${tp_config_proxy}
+
+  tp_ip=$(eval "echo \${TP_${tp_num}_RESERVED_IP}")
+  sed -i -e "s@${tp_ip}@${PROXY_RESERVED_IP}@g" "${tp_config_proxy}"
+done
+
+
+cp -f ${RP_KUBECONFIG} ${RP_PROXY_KUBECONFIG}
+sed -i -e "s@${RESOURCE_SERVER_IP}@${PROXY_RESERVED_IP}@g" "${RP_PROXY_KUBECONFIG}"
 
 sleep 5
 echo -e "\nListing kubeamrk cluster details:" >&2
