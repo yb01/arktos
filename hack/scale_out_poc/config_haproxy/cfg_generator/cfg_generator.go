@@ -35,6 +35,7 @@ var (
 )
 
 const (
+	ARKTOS_API_SECURE_PORT = 443
 	ARKTOS_API_PORT      = 8080
 	MAX_CONN_PER_BACKEND = 500000
 	CONNECTION_TIMEOUT   = "10m"
@@ -176,13 +177,16 @@ func get_backends() string {
 
 	result := ""
 
-	rp_backend := "backend tenant_api_%v\n    server tp_%v %v:%v maxconn %v\n\n"
+
+	//TODO: add flag to the tool for secure port or insecure port usage
+	//
+	rp_backend := "backend tenant_api_%v\n    server tp_%v %v:%v maxconn %v ssl check ca-file /etc/haproxy/tp-%v-certs/ca.crt crt /etc/haproxy/tp-%v-certs/tp.pem\n\n"
 	for index, ip := range tenantPartititonIPs {
-		result = result + fmt.Sprintf(rp_backend, index+1, index+1, ip, ARKTOS_API_PORT, MAX_CONN_PER_BACKEND)
+		result = result + fmt.Sprintf(rp_backend, index+1, index+1, ip, ARKTOS_API_SECURE_PORT, MAX_CONN_PER_BACKEND, index+1, index+1)
 	}
 
-	tp_backend := "backend resource_api\n    server rp %v:%v maxconn %v\n\n"
-	result = result + fmt.Sprintf(tp_backend, resourcePartitionIP, ARKTOS_API_PORT, MAX_CONN_PER_BACKEND)
+	tp_backend := "backend resource_api\n    server rp %v:%v maxconn %v ssl check ca-file /etc/haproxy/rp-certs/ca.crt crt /etc/haproxy/rp-certs/rp.pem\n\n"
+	result = result + fmt.Sprintf(tp_backend, resourcePartitionIP, ARKTOS_API_SECURE_PORT, MAX_CONN_PER_BACKEND)
 
 	return result
 }

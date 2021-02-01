@@ -2815,6 +2815,8 @@ function update-proxy() {
 
   local -r proxy_template=${KUBE_ROOT}/hack/scale_out_poc/config_haproxy/haproxy.cfg.template
 
+  ## TODO: use the temp IP file to get the Tenant cluster IP instead of getting it from the tmp config
+  #
   TENANT_PARTITION_IP="${TP_IP:-}" RESOURCE_PARTITION_IP="${RP_IP:-}" /tmp/haproxy_cfg_generator -template=${proxy_template} -target="${PROXY_CONFIG_FILE_TMP}" 
 
   if [[ $? != 0 ]] 
@@ -2836,7 +2838,12 @@ function load-proxy-cfg {
   echo "VDBG ========================================"
   cat ${PROXY_CONFIG_FILE_TMP}
   echo "VDBG ========================================"
-  ssh-to-node ${PROXY_NAME} "sudo systemctl restart ${KUBERNETES_SCALEOUT_PROXY_APP}"
+
+  ## only restart after RP is configured
+  #
+  if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
+    ssh-to-node ${PROXY_NAME} "sudo systemctl restart ${KUBERNETES_SCALEOUT_PROXY_APP}"
+  fi
 }
 
 function build_haproxy_cfg_generator() {
@@ -3011,7 +3018,27 @@ function create-master() {
     build_haproxy_cfg_generator
   fi
 
-  if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "false" && "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then 
+  if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "false" && "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
+    ## TODO: copy over the certs to the proxy VM first
+    #
+    echo "DBG: CERT_DIR: ${CERT_DIR}"
+    ls -R ${CERT_DIR}
+     mkdir -p /tmp/rp-certs
+    cp -r ${CERT_DIR}/* /tmp/rp-certs/
+
+    echo "DBG: copy certs to proxy machine"
+    ssh-to-node ${PROXY_NAME} "sudo mkdir -p /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs"
+    ## hack
+    ssh-to-node ${PROXY_NAME} "sudo chmod 777 /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/kube-apiserver.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/kube-apiserver.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
+
+    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/kube-apiserver.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
+    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/kube-apiserver.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
+
+    ## TODO: should NOT copy the ca.key, at most the ca.crt is needed
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/ca.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/ca.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
     update-proxy "$(cat /tmp/saved_tenant_ips.txt)" "${MASTER_RESERVED_IP}"
   fi
 
@@ -3026,7 +3053,30 @@ function create-master() {
     fi
 
     echo "${TP_IP_CONCAT}" > /tmp/saved_tenant_ips.txt
-         
+
+    ## TODO: copy over the certs to the proxy VM firsst
+    #
+    echo "DBG: CERT_DIR: ${CERT_DIR}"
+    ls -R ${CERT_DIR}
+    mkdir -p /tmp/tp-${TENANT_PARTITION_SEQUENCE}-certs
+    cp -r ${CERT_DIR}/* /tmp/tp-${TENANT_PARTITION_SEQUENCE}-certs/
+
+    echo "DBG: copy certs to proxy machine"
+    echo "DBG: tp number: ${TENANT_PARTITION_SEQUENCE}"
+
+    ssh-to-node ${PROXY_NAME} "sudo mkdir -p /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs"
+    ## hack
+    ssh-to-node ${PROXY_NAME} "sudo chmod 777 /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs"
+
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/kube-apiserver.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/kube-apiserver.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
+
+    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/kube-apiserver.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
+    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/kube-apiserver.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
+
+    ## TODO: should NOT copy the ca.key, at most the ca.crt is needed
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/ca.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/ca.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
     # as TP are built before RP, so when updating the proxy.cfg before RP is ready, we use IP of TP to replace RP_IP temporarily
     update-proxy "${TP_IP_CONCAT}" "${MASTER_RESERVED_IP}"
   fi
