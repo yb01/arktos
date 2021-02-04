@@ -166,7 +166,7 @@ func Run(cc schedulerserverconfig.CompletedConfig, stopCh <-chan struct{}) error
 
 	// Create the scheduler.
 	sched, err := scheduler.New(cc.Client,
-		cc.InformerFactory.Core().V1().Nodes(),
+		cc.ResourceInformer,
 		cc.PodInformer,
 		cc.InformerFactory.Core().V1().PersistentVolumes(),
 		cc.InformerFactory.Core().V1().PersistentVolumeClaims(),

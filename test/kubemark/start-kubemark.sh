@@ -350,10 +350,31 @@ else
   create-kubemark-master
 fi
 
+
+# master machine name: yb01-m2-secureport-kubemark-tp-1-master
+# destination file " --resource-providers=/etc/srv/kubernetes/kube-scheduler/rp-kubeconfig"
+for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+do
+  tp_vm="${RUN_PREFIX}-kubemark-tp-${tp_num}-master"
+  echo "DBG: reset scheduler on TP master: ${tp_vm}"
+  gcloud compute scp --zone="${KUBE_GCE_ZONE}" "${RP_KUBECONFIG}" "${tp_vm}:/tmp/rp-kubeconfig"
+
+  cmd="sudo mv /tmp/rp-kubeconfig /etc/srv/kubernetes/kube-scheduler/rp-kubeconfig"
+  gcloud compute ssh --ssh-flag="-o LogLevel=quiet" --ssh-flag="-o ConnectTimeout=30" --project "${PROJECT}" --zone="${KUBE_GCE_ZONE}" "${tp_vm}" --command "${cmd}"
+  cmd="sudo pkill kube-scheduler"
+  gcloud compute ssh --ssh-flag="-o LogLevel=quiet" --ssh-flag="-o ConnectTimeout=30" --project "${PROJECT}" --zone="${KUBE_GCE_ZONE}" "${tp_vm}" --command "${cmd}"
+
+done
+
 # start hollow nodes with multiple tenant partition parameters
-#
-# hack reset the TENANT_SERVERS to match the secrets names for hollow nodes for testing purpose
 export TENANT_SERVERS="tp1.kubeconfig"
+for (( tp_num=2; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+do
+  export TENANT_SERVERS="${TENANT_SERVERS},tp${tp_num}.kubeconfig"
+done
+
+echo "DBG: TENANT_SERVERS: ${TENANT_SERVERS}"
+
 start-hollow-nodes
 
 echo ""
