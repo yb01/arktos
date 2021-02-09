@@ -39,7 +39,7 @@ source "${KUBE_ROOT}/cluster/kubemark/util.sh"
 
 KUBECTL="${KUBE_ROOT}/cluster/kubectl.sh"
 KUBEMARK_DIRECTORY="${KUBE_ROOT}/test/kubemark"
-RESOURCE_DIRECTORY="${KUBEMARK_DIRECTORY}/resources"
+export RESOURCE_DIRECTORY="${KUBEMARK_DIRECTORY}/resources"
 LOCAL_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark"
 LOCAL_KUBECONFIG_TMP="${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tmp"
 

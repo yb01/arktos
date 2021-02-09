@@ -1700,10 +1700,14 @@ function create-certs {
     fi
   done
 
-  SCALEOUT_PROXY_IP=$(cat /tmp/proxy-reserved-ip.txt)
-  echo "SCALEOUT_PROXY_IP: ${SCALEOUT_PROXY_IP}"
+  sans="${sans}IP:${service_ip},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.${DNS_DOMAIN},DNS:${MASTER_NAME}"
 
-  sans="${sans}IP:${service_ip},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.${DNS_DOMAIN},DNS:${MASTER_NAME},IP:${SCALEOUT_PROXY_IP}"
+  if [ -f "/tmp/proxy-reserved-ip.txt" ]; then
+    SCALEOUT_PROXY_IP=$(cat /tmp/proxy-reserved-ip.txt)
+    echo "SCALEOUT_PROXY_IP: ${SCALEOUT_PROXY_IP}"
+
+    sans="${sans},IP:${SCALEOUT_PROXY_IP}"
+  fi
 
   echo "Generating certs for alternate-names: ${sans}"
 
@@ -1774,7 +1778,7 @@ function setup-easyrsa {
 #   SANS: Subject alternate names
 #
 #
-function generate-certs {
+function   generate-certs {
   local -r cert_create_debug_output=$(mktemp "${KUBE_TEMP}/cert_create_debug_output.XXX")
   # Note: This was heavily cribbed from make-ca-cert.sh
   (set -x
@@ -1782,6 +1786,11 @@ function generate-certs {
     ./easyrsa init-pki
     # this puts the cert into pki/ca.crt and the key into pki/private/ca.key
     ./easyrsa --batch "--req-cn=${PRIMARY_CN}@$(date +%s)" build-ca nopass
+
+    # overwrite the CA by copying the prebuilt CA files
+    cp -f ${RESOURCE_DIRECTORY}/ca.crt ./pki/ca.crt
+    cp -f ${RESOURCE_DIRECTORY}/ca.key ./pki/private/ca.key
+
     ./easyrsa --subject-alt-name="${SANS}" build-server-full "${MASTER_NAME}" nopass
     ./easyrsa build-client-full kube-apiserver nopass
 
@@ -3033,8 +3042,13 @@ function create-master() {
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/kube-apiserver.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/kube-apiserver.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
 
-    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/kube-apiserver.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
-    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/kube-apiserver.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
+    # master cert with the IPs in SAN
+    # naming as yb01-m2-secureport-kubemark-rp-master.crt
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/${RUN_PREFIX}-kubemark-rp-master.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/${RUN_PREFIX}-kubemark-rp-master.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
+
+    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/${RUN_PREFIX}-kubemark-rp-master.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
+    ssh-to-node ${PROXY_NAME} "cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/${RUN_PREFIX}-kubemark-rp-master.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/rp.pem"
 
     ## TODO: should NOT copy the ca.key, at most the ca.crt is needed
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/ca.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/rp-certs/"
@@ -3071,8 +3085,11 @@ function create-master() {
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/kube-apiserver.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/kube-apiserver.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
 
-    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/kube-apiserver.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
-    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/kube-apiserver.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/${RUN_PREFIX}-kubemark-tp-${TENANT_PARTITION_SEQUENCE}-master.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
+    gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/issued/${RUN_PREFIX}-kubemark-tp-${TENANT_PARTITION_SEQUENCE}-master.crt" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
+
+    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/${RUN_PREFIX}-kubemark-tp-${TENANT_PARTITION_SEQUENCE}-master.key > /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
+    ssh-to-node ${PROXY_NAME} "sudo cat /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/${RUN_PREFIX}-kubemark-tp-${TENANT_PARTITION_SEQUENCE}-master.crt >> /etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/tp.pem"
 
     ## TODO: should NOT copy the ca.key, at most the ca.crt is needed
     gcloud compute scp --zone="${ZONE}" "${CERT_DIR}/pki/private/ca.key" "${PROXY_NAME}:/etc/${KUBERNETES_SCALEOUT_PROXY_APP}/tp-${TENANT_PARTITION_SEQUENCE}-certs/"
