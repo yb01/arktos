@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
+
 	//"k8s.io/client-go/datapartition"
 	"net/http"
 	"os"
@@ -229,6 +231,15 @@ func Run(cc schedulerserverconfig.CompletedConfig, stopCh <-chan struct{}) error
 	// Start all informers.
 	go cc.PodInformer.Informer().Run(stopCh)
 	cc.InformerFactory.Start(stopCh)
+
+	go cc.ResourceInformer.Informer().Run(stopCh)
+	for {
+	 if cc.ResourceInformer.Informer().HasSynced() {
+	 	break
+	 }
+	 klog.V(6).Infof("Wait for node sync...")
+	 time.Sleep(300 * time.Millisecond)
+	}
 
 	// Wait for all caches to sync before scheduling.
 	cc.InformerFactory.WaitForCacheSync(stopCh)

@@ -259,11 +259,14 @@ func (o *Options) Config() (*schedulerappconfig.Config, error) {
 		klog.V(4).Infof("ResourceProvider kubeConfig is not set. default to local cluster client")
 		c.ResourceInformer = c.InformerFactory.Core().V1().Nodes()
 	} else {
+
 		c.ResourceProviderClient, err = createClientFromFile(c.ComponentConfig.ResourceProviderClientConnection.Kubeconfig)
 		if err != nil {
 			klog.Error("failed to create resource provider rest client, error: %v", err)
 			return nil, err
 		}
+
+		klog.V(4).Infof("Create the resource informer from resourceProvider kubeConfig")
 		ResourceInformerFactory := informers.NewSharedInformerFactory(c.ResourceProviderClient, 0)
         c.ResourceInformer = ResourceInformerFactory.Core().V1().Nodes()
 	}
@@ -363,13 +366,13 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 }
 
 func createClientFromFile(kubeconfigPath string) (clientset.Interface, error) {
-
+    klog.V(4).Infof("Create kubeclient from config file: %s", kubeconfigPath)
 	clientCfg, err := createClientConfigFromFile(kubeconfigPath)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := clientset.NewForConfig(clientCfg)
+	client, err := clientset.NewForConfig(restclient.AddUserAgent(clientCfg, "scheduler"))
 	if err != nil {
 		return nil, fmt.Errorf("error while creating clientset with %s, error %v", kubeconfigPath, err.Error())
 	}
