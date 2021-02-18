@@ -321,6 +321,14 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
       MASTER_METADATA=${MASTER_METADATA},"tp-${tp_num}=${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}"
     fi
 
+    # export tp-1 token and share with other clusters
+    if [[ ${tp_num} == 1 ]]; then
+      tp1_token=$(grep token "${LOCAL_KUBECONFIG_TMP}" | awk -F ": " '{print $2}')
+      export SHARED_APISERVER_TOKEN=${tp1_token}
+      echo "shares token: ${SHARED_APISERVER_TOKEN}"
+    fi
+
+
    # TODO: cleanup
    # sed -i -e "s@http://${PROXY_RESERVED_IP}:8888@${TP_SERVER}@g" "${RESOURCE_DIRECTORY}/kubeconfig.kubemark.tp-${tp_num}"
     export KUBERNETES_SCALEOUT_PROXY=false

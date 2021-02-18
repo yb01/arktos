@@ -581,6 +581,15 @@ function create-master-auth {
   if [[ -e "${known_tokens_csv}" && "${METADATA_CLOBBERS_CONFIG:-false}" == "true" ]]; then
     rm "${known_tokens_csv}"
   fi
+
+  ## share the TP1's token to all cluster api servers
+  ## so cloudloader perf test can use TP1's kubeconfig to access all cluster api servers
+  ## TODO: reconsider to change perf test with multiple kubeconfig for each api server it needs to access
+  ##       or reuse the KUBE_BEAER_TOKEN with some tweaks in the scripts
+  #
+  if [[ -n "${SHARED_APISERVER_TOKEN:-}" ]]; then
+    append_or_replace_prefixed_line "${known_tokens_csv}" "${SHARED_APISERVER_TOKEN},"             "admin,admin,system:masters"
+  fi
   if [[ -n "${KUBE_BEARER_TOKEN:-}" ]]; then
     append_or_replace_prefixed_line "${known_tokens_csv}" "${KUBE_BEARER_TOKEN},"             "admin,admin,system:masters"
   fi
@@ -2197,7 +2206,11 @@ function start-kube-controller-manager {
     params+=" --use-service-account-credentials"
   fi
   params+=" --cloud-provider=gce"
-  params+=" --kubeconfig=/etc/srv/kubernetes/kube-controller-manager/kubeconfig"
+  ## hack, to workaround a RBAC issue with the controller token, it failed syncing replicasets so pods cannot be created from the deployments
+  ## TODO: investigate and fix it later
+  #
+  params+=" --kubeconfig=/etc/srv/kubernetes/kube-bootstrap/kubeconfig"
+ # params+=" --kubeconfig=/etc/srv/kubernetes/kube-controller-manager/kubeconfig"
   ##switch to enable/disable kube-controller-manager leader-elect: --leader-elect=true/false
   if [[ "${ENABLE_KCM_LEADER_ELECT:-true}" == "false" ]]; then
     params+=" --leader-elect=false"
