@@ -186,11 +186,11 @@ func run(config *hollowNodeConfig) {
 	if len(config.TenantServers) == 0 {
 		klog.V(3).Infof("TenantServers is not set. Default to single tenant partition and clientConfig setting")
 		config.TenantServers = make([]string, 1)
-		config.TenantServers[0] = clientConfigs.GetConfig().Host
+		config.TenantServers[0] = config.KubeconfigPath
 	}
 	if config.ResourceServer == "" {
 		klog.V(3).Infof("Resource is not set. Default to clientConfig setting")
-		config.ResourceServer = clientConfigs.GetConfig().Host
+		config.ResourceServer = config.KubeconfigPath
 	}
 
 	// initialize the kubeclient manager
