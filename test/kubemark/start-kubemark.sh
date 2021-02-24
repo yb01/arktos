@@ -135,14 +135,16 @@ function create-kube-hollow-node-resources {
   # Create secret for passing kubeconfigs to kubelet, kubeproxy and npd.
   # It's bad that all component shares the same kubeconfig.
   # TODO(https://github.com/kubernetes/kubernetes/issues/79883): Migrate all components to separate credentials.
-  # TODO: loop for all TP clusters
+  # TODO: DNS talk to proxy to get the service info
+  # TODO: kubeproxy to proxy to get the serivce info
   #
-  create_secret_args="--from-file=kubelet.kubeconfig="${TP_KUBECONFIG}
-  create_secret_args=${create_secret_args}"  --from-file=kubeproxy.kubeconfig="${TP_KUBECONFIG}
+  echo "DBG setting up secrets for hollow nodes"
+  create_secret_args="--from-file=kubelet.kubeconfig="${RP_KUBECONFIG}
+  create_secret_args=${create_secret_args}"  --from-file=kubeproxy.kubeconfig="${RP_KUBECONFIG}
   create_secret_args=${create_secret_args}"  --from-file=npd.kubeconfig="${RP_KUBECONFIG}
-  create_secret_args=${create_secret_args}"  --from-file=heapster.kubeconfig="${TP_KUBECONFIG}
+  create_secret_args=${create_secret_args}"  --from-file=heapster.kubeconfig="${RP_KUBECONFIG}
   create_secret_args=${create_secret_args}" --from-file=cluster_autoscaler.kubeconfig="${RP_KUBECONFIG}
-  create_secret_args=${create_secret_args}" --from-file=dns.kubeconfig="${TP_KUBECONFIG}
+  create_secret_args=${create_secret_args}" --from-file=dns.kubeconfig="${RP_KUBECONFIG}
 
   for (( tp_num=1; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
   do
