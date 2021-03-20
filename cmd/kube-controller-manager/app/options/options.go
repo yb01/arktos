@@ -423,7 +423,9 @@ func (s KubeControllerManagerOptions) Config(allControllers []string, disabledBy
 	if len(s.ResourceProviderKubeConfig) > 0 {
 		resourceProviderKubeConfigFiles, existed := genutils.ParseKubeConfigFiles(s.ResourceProviderKubeConfig)
 		if !existed {
-			return nil, fmt.Errorf("--resource-providers points to non existed file(s)")
+			klog.V(3).Infof("--resource-providers points to non existed file(s), default to local cluster kubeconfig file")
+			s.ResourceProviderKubeConfig = s.Kubeconfig
+			resourceProviderKubeConfigFiles, _ = genutils.ParseKubeConfigFiles(s.ResourceProviderKubeConfig)
 		}
 		resourceProviderClients = make([]clientset.Interface, len(resourceProviderKubeConfigFiles))
 		for i, kubeConfigFile := range resourceProviderKubeConfigFiles {
