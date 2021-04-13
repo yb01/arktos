@@ -92,7 +92,8 @@ func TestSkipPodUpdate(t *testing.T) {
 							Manager:    "some-actor",
 							Operation:  metav1.ManagedFieldsOperationApply,
 							APIVersion: "v1",
-							FieldsType: "FieldsV1",
+							// Skip PR 81754 - TODO
+							/*FieldsType: "FieldsV1",
 							FieldsV1: &metav1.FieldsV1{
 								Raw: []byte(`
 									"f:metadata": {
@@ -101,7 +102,7 @@ func TestSkipPodUpdate(t *testing.T) {
 									  }
 									}
 								`),
-							},
+							},*/
 						},
 					},
 				},
@@ -123,7 +124,8 @@ func TestSkipPodUpdate(t *testing.T) {
 								Manager:    "some-actor",
 								Operation:  metav1.ManagedFieldsOperationApply,
 								APIVersion: "v1",
-								FieldsType: "FieldsV1",
+								// Skip PR 81754 - TODO
+								/*FieldsType: "FieldsV1",
 								FieldsV1: &metav1.FieldsV1{
 									Raw: []byte(`
 										"f:metadata": {
@@ -133,13 +135,14 @@ func TestSkipPodUpdate(t *testing.T) {
 										  }
 										}
 									`),
-								},
+								},*/
 							},
 							{
 								Manager:    "some-actor",
 								Operation:  metav1.ManagedFieldsOperationApply,
 								APIVersion: "v1",
-								FieldsType: "FieldsV1",
+								// Skip PR 81754 - TODO
+								/*FieldsType: "FieldsV1",
 								FieldsV1: &metav1.FieldsV1{
 									Raw: []byte(`
 										"f:metadata": {
@@ -148,7 +151,7 @@ func TestSkipPodUpdate(t *testing.T) {
 										  }
 										}
 									`),
-								},
+								},*/
 							},
 						},
 					},
