@@ -17,7 +17,6 @@ limitations under the License.
 package options
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -1015,7 +1014,7 @@ plugins:
 
 			// test the client talks to the endpoint we expect with the credentials we expect
 			username = ""
-			_, err = config.Client.Discovery().RESTClient().Get().AbsPath("/").DoRaw(context.TODO())
+			_, err = config.Client.Discovery().RESTClient().Get().AbsPath("/").DoRaw()
 			if err != nil {
 				t.Error(err)
 				return
