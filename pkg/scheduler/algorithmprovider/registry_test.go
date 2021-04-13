@@ -250,7 +250,7 @@ func TestApplyFeatureGates(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			defer featuregatetesting.SetFeatureGateDuringTest(t, utilfeature.DefaultFeatureGate, features.ResourceLimitsPriorityFunction, test.featuresEnabled)()
-			defer featuregatetesting.SetFeatureGateDuringTest(t, utilfeature.DefaultFeatureGate, features.EvenPodsSpread, test.featuresEnabled)()
+			//defer featuregatetesting.SetFeatureGateDuringTest(t, utilfeature.DefaultFeatureGate, features.EvenPodsSpread, test.featuresEnabled)()
 
 			r := NewRegistry()
 			gotConfig := r[schedulerapi.SchedulerDefaultProviderName]
