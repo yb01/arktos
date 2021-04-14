@@ -32,10 +32,10 @@ metadata:
   tenant: "4"
   uid: "7"
 spec:
-  minReadySeconds: -1404859721
-  progressDeadlineSeconds: -1399236189
+  minReadySeconds: 346775159
+  progressDeadlineSeconds: 2000161472
   replicas: 896585016
-  revisionHistoryLimit: -1819153912
+  revisionHistoryLimit: 1836894267
   selector:
     matchExpressions:
     - key: 50-u--25cu87--r7p-w1e67-8pj5t-kl-v0q6b68--nu5oii38fn-8.629b-jd-8c45-0-8--6n--w0--w---196g8d--iv1-5--5ht-a-29--0qso796/3___47._49pIB_o61ISU4--A_.XK_._M99
@@ -44,7 +44,7 @@ spec:
       74404d5---g8c2-k-91e.y5-g--58----0683-b-w7ld-6cs06xj-x5yv0wm-k18/M_-Nx.N_6-___._-.-W._AAn---v_-5-_8LXj: 6-4_WE-_JTrcd-2.-__E_Sv__26KX_R_.-.Nth._--S_4DA_-5_-4lQ42M--1
   strategy:
     rollingUpdate: {}
-    type: eCmAȥ睙蜵
+    type: ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶
   template:
     metadata:
       annotations:
@@ -492,6 +492,8 @@ spec:
       nodeName: "299"
       nodeSelector:
         "295": "296"
+      overhead:
+        莏ŹZ槇鿖]: "643"
       preemptionPolicy: I梞ū筀
       priority: -413167112
       priorityClassName: "356"
@@ -785,17 +787,17 @@ spec:
           subPath: "293"
           subPathExpr: "294"
 status:
-  availableReplicas: 1704922150
-  collisionCount: 1538760390
+  availableReplicas: 1450294910
+  collisionCount: 614349588
   conditions:
-  - lastTransitionTime: "2261-10-03T03:52:01Z"
-    lastUpdateTime: "2507-02-21T23:18:00Z"
+  - lastTransitionTime: "2420-01-08T18:33:08Z"
+    lastUpdateTime: "2963-02-17T08:29:32Z"
     message: "363"
     reason: "362"
-    status: N擻搧菸F
-    type: ""
-  observedGeneration: 185290308298818537
-  readyReplicas: 1048207445
-  replicas: -77431114
-  unavailableReplicas: -1710874288
-  updatedReplicas: -1042020845
+    status: ""
+    type: 蒿¶篧
+  observedGeneration: 6828269921752891336
+  readyReplicas: 194996146
+  replicas: 1897665453
+  unavailableReplicas: 1525782520
+  updatedReplicas: 431143130

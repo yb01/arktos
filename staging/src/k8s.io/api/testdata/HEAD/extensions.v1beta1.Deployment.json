@@ -1148,39 +1148,42 @@
         ],
         "runtimeClassName": "361",
         "enableServiceLinks": false,
-        "preemptionPolicy": "I梞ū筀"
+        "preemptionPolicy": "I梞ū筀",
+        "overhead": {
+          "莏ŹZ槇鿖]": "643"
+        }
       }
     },
     "strategy": {
-      "type": "eCmAȥ睙蜵",
+      "type": "ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶",
       "rollingUpdate": {
         
       }
     },
-    "minReadySeconds": -1404859721,
-    "revisionHistoryLimit": -1819153912,
+    "minReadySeconds": 346775159,
+    "revisionHistoryLimit": 1836894267,
     "rollbackTo": {
-      "revision": 7160804022655998371
+      "revision": -8752842312990061888
     },
-    "progressDeadlineSeconds": -1672835519
+    "progressDeadlineSeconds": -833699431
   },
   "status": {
-    "observedGeneration": -332564099224057101,
-    "replicas": -1316438261,
-    "updatedReplicas": -733807,
-    "readyReplicas": 1075711928,
-    "availableReplicas": -1194745874,
-    "unavailableReplicas": -1993697685,
+    "observedGeneration": 8150411060729751511,
+    "replicas": 959922348,
+    "updatedReplicas": 65493827,
+    "readyReplicas": -33069389,
+    "availableReplicas": -37906634,
+    "unavailableReplicas": -1754419098,
     "conditions": [
       {
-        "type": "擻搧菸Fǥ楶4驦訨ʣ囨汙Ȗ",
-        "status": "ż暬Ƒ琇ũ齑誀ŭ\"ɦ?",
-        "lastUpdateTime": "2741-08-01T23:33:42Z",
-        "lastTransitionTime": "2560-07-30T23:35:57Z",
+        "type": "誀ŭ\"ɦ?",
+        "status": "軓鼐嵱宯ÙQ阉(闒ƈ",
+        "lastUpdateTime": "2496-05-16T19:23:13Z",
+        "lastTransitionTime": "2858-07-24T03:05:12Z",
         "reason": "362",
         "message": "363"
       }
     ],
-    "collisionCount": 775062301
+    "collisionCount": -1140021566
   }
 }

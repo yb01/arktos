@@ -496,6 +496,8 @@ spec:
       nodeName: "305"
       nodeSelector:
         "301": "302"
+      overhead:
+        颮6(|ǖûǭg怨彬ɈNƋl塠: "609"
       preemptionPolicy: Ŏ群E牬
       priority: -1965712376
       priorityClassName: "362"
@@ -787,15 +789,15 @@ spec:
           readOnly: true
           subPath: "299"
           subPathExpr: "300"
-  ttlSecondsAfterFinished: -705803645
+  ttlSecondsAfterFinished: 163034368
 status:
-  active: 1708939272
+  active: 779497741
   conditions:
-  - lastProbeTime: "2026-04-04T02:15:22Z"
-    lastTransitionTime: "2331-04-26T12:31:15Z"
+  - lastProbeTime: "2835-11-18T11:52:47Z"
+    lastTransitionTime: "2237-09-01T04:57:55Z"
     message: "369"
     reason: "368"
-    status: üMɮ6).¸赂ʓ蔋 ǵq砯á
-    type: 5fŮƛƛ龢ÄƤUǷ坒ŕF5
-  failed: -1544740061
-  succeeded: -559548326
+    status: ɒ杞¹t骳ɰɰUʜʔŜ0¢啥ƵǸG
+    type: ɮ6)
+  failed: 181003817
+  succeeded: -969397138

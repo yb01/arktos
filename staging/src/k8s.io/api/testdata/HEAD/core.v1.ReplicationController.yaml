@@ -495,6 +495,8 @@ spec:
       nodeName: "293"
       nodeSelector:
         "289": "290"
+      overhead:
+        ɮ6): "299"
       preemptionPolicy: 怨彬ɈNƋl塠傫ü
       priority: -1286809305
       priorityClassName: "350"
@@ -788,14 +790,14 @@ spec:
           subPath: "287"
           subPathExpr: "288"
 status:
-  availableReplicas: 1455943158
+  availableReplicas: -938518320
   conditions:
-  - lastTransitionTime: "2148-04-22T20:43:33Z"
+  - lastTransitionTime: "2237-09-01T04:57:55Z"
     message: "357"
     reason: "356"
-    status: 閥óƒ畒Üɉ愂,wa纝佯fɞ糮
-    type: 赂ʓ蔋 ǵq砯á缈gȇǙ屏宨殴妓
-  fullyLabeledReplicas: 1298031603
-  observedGeneration: -3859842532959254821
-  readyReplicas: -985978487
-  replicas: 1631678367
+    status: 砯á缈gȇǙ屏宨殴妓
+    type: ɰ
+  fullyLabeledReplicas: -1872859674
+  observedGeneration: 9073201842664341020
+  readyReplicas: -1475042371
+  replicas: -461882341

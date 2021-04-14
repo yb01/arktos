@@ -497,6 +497,8 @@ spec:
       nodeName: "302"
       nodeSelector:
         "298": "299"
+      overhead:
+        镳餘ŁƁ翂|C ɩ繞: "442"
       preemptionPolicy: z芀¿l磶Bb偃礳Ȭ痍脉PPö
       priority: -1727081143
       priorityClassName: "359"
@@ -790,14 +792,14 @@ spec:
           subPath: "296"
           subPathExpr: "297"
 status:
-  availableReplicas: -1963392385
+  availableReplicas: 1813037030
   conditions:
-  - lastTransitionTime: "2107-06-15T12:22:42Z"
+  - lastTransitionTime: "2175-01-31T05:26:01Z"
     message: "366"
     reason: "365"
-    status: 藷曥摮Z Ǐg鲅峣/vɟ擅Ɇǥ
-    type: '|C ɩ繞怨ǪǌZ'
-  fullyLabeledReplicas: -137402083
-  observedGeneration: 5704089439119610955
-  readyReplicas: -670468262
-  replicas: 1852139780
+    status: Ȟ9"忕(z
+    type: 摮Z Ǐg鲅峣/vɟ擅Ɇ
+  fullyLabeledReplicas: -1081679275
+  observedGeneration: -8882008814426734176
+  readyReplicas: 1908415603
+  replicas: -305244896

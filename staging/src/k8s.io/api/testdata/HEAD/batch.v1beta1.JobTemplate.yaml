@@ -531,6 +531,8 @@ template:
         nodeName: "314"
         nodeSelector:
           "310": "311"
+        overhead:
+          锒鿦Ršțb贇髪č: "840"
         preemptionPolicy: qiǙĞǠ
         priority: -895317190
         priorityClassName: "371"
@@ -821,4 +823,4 @@ template:
             name: "306"
             subPath: "308"
             subPathExpr: "309"
-    ttlSecondsAfterFinished: -1207101167
+    ttlSecondsAfterFinished: 44905239

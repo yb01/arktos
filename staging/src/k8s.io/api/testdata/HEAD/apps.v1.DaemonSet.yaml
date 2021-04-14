@@ -32,8 +32,8 @@ metadata:
   tenant: "4"
   uid: "7"
 spec:
-  minReadySeconds: -1404859721
-  revisionHistoryLimit: -1819153912
+  minReadySeconds: 346775159
+  revisionHistoryLimit: 1836894267
   selector:
     matchExpressions:
     - key: p503---477-49p---o61---4fy--9---7--9-9s-0-u5lj2--10pq-0-7-9-2-0/fP81.-.9Vdx.TB_M-H_5_.t..bG0
@@ -497,6 +497,8 @@ spec:
       nodeName: "295"
       nodeSelector:
         "291": "292"
+      overhead:
+        莏ŹZ槇鿖]: "643"
       preemptionPolicy: I梞ū筀
       priority: -413167112
       priorityClassName: "352"
@@ -792,20 +794,20 @@ spec:
           subPathExpr: "290"
   updateStrategy:
     rollingUpdate: {}
-    type: eCmAȥ睙蜵
+    type: ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶
 status:
-  collisionCount: -1993697685
+  collisionCount: -1754419098
   conditions:
-  - lastTransitionTime: "2741-08-01T23:33:42Z"
+  - lastTransitionTime: "2496-05-16T19:23:13Z"
     message: "359"
     reason: "358"
-    status: ż暬Ƒ琇ũ齑誀ŭ"ɦ?
-    type: 擻搧菸Fǥ楶4驦訨ʣ囨汙Ȗ
-  currentNumberScheduled: -1005429684
-  desiredNumberScheduled: -1099349015
-  numberAvailable: 1704922150
-  numberMisscheduled: -1399236189
-  numberReady: -77431114
-  numberUnavailable: -1710874288
-  observedGeneration: -5137539601620793837
-  updatedNumberScheduled: 1048207445
+    status: 軓鼐嵱宯ÙQ阉(闒ƈ
+    type: 誀ŭ"ɦ?
+  currentNumberScheduled: 1948226499
+  desiredNumberScheduled: -326058040
+  numberAvailable: 1450294910
+  numberMisscheduled: 2000161472
+  numberReady: 1897665453
+  numberUnavailable: 1525782520
+  observedGeneration: 5779850976579205338
+  updatedNumberScheduled: 194996146

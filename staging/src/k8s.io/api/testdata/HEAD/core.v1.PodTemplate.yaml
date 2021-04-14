@@ -483,6 +483,8 @@ template:
     nodeName: "294"
     nodeSelector:
       "290": "291"
+    overhead:
+      '''o儿Ƭ銭u裡_': "986"
     preemptionPolicy: '>'
     priority: -88455527
     priorityClassName: "351"

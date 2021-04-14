@@ -4002,6 +4002,13 @@ func (in *PodSpec) DeepCopyInto(out *PodSpec) {
 		*out = new(PreemptionPolicy)
 		**out = **in
 	}
+	if in.Overhead != nil {
+		in, out := &in.Overhead, &out.Overhead
+		*out = make(ResourceList, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val.DeepCopy()
+		}
+	}
 	return
 }
 

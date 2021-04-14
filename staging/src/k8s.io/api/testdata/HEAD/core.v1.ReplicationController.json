@@ -1156,21 +1156,24 @@
         ],
         "runtimeClassName": "355",
         "enableServiceLinks": false,
-        "preemptionPolicy": "怨彬ɈNƋl塠傫ü"
+        "preemptionPolicy": "怨彬ɈNƋl塠傫ü",
+        "overhead": {
+          "ɮ6)": "299"
+        }
       }
     }
   },
   "status": {
-    "replicas": 1631678367,
-    "fullyLabeledReplicas": 1298031603,
-    "readyReplicas": -985978487,
-    "availableReplicas": 1455943158,
-    "observedGeneration": -3859842532959254821,
+    "replicas": -461882341,
+    "fullyLabeledReplicas": -1872859674,
+    "readyReplicas": -1475042371,
+    "availableReplicas": -938518320,
+    "observedGeneration": 9073201842664341020,
     "conditions": [
       {
-        "type": "赂ʓ蔋 ǵq砯á缈gȇǙ屏宨殴妓",
-        "status": "閥óƒ畒Üɉ愂,wa纝佯fɞ糮",
-        "lastTransitionTime": "2148-04-22T20:43:33Z",
+        "type": "ɰ",
+        "status": "砯á缈gȇǙ屏宨殴妓",
+        "lastTransitionTime": "2237-09-01T04:57:55Z",
         "reason": "356",
         "message": "357"
       }

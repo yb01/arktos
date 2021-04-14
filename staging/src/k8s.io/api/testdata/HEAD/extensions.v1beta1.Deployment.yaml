@@ -32,12 +32,12 @@ metadata:
   tenant: "4"
   uid: "7"
 spec:
-  minReadySeconds: -1404859721
-  progressDeadlineSeconds: -1672835519
+  minReadySeconds: 346775159
+  progressDeadlineSeconds: -833699431
   replicas: 896585016
-  revisionHistoryLimit: -1819153912
+  revisionHistoryLimit: 1836894267
   rollbackTo:
-    revision: 7160804022655998371
+    revision: -8752842312990061888
   selector:
     matchExpressions:
     - key: 50-u--25cu87--r7p-w1e67-8pj5t-kl-v0q6b68--nu5oii38fn-8.629b-jd-8c45-0-8--6n--w0--w---196g8d--iv1-5--5ht-a-29--0qso796/3___47._49pIB_o61ISU4--A_.XK_._M99
@@ -46,7 +46,7 @@ spec:
       74404d5---g8c2-k-91e.y5-g--58----0683-b-w7ld-6cs06xj-x5yv0wm-k18/M_-Nx.N_6-___._-.-W._AAn---v_-5-_8LXj: 6-4_WE-_JTrcd-2.-__E_Sv__26KX_R_.-.Nth._--S_4DA_-5_-4lQ42M--1
   strategy:
     rollingUpdate: {}
-    type: eCmAȥ睙蜵
+    type: ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶
   template:
     metadata:
       annotations:
@@ -494,6 +494,8 @@ spec:
       nodeName: "299"
       nodeSelector:
         "295": "296"
+      overhead:
+        莏ŹZ槇鿖]: "643"
       preemptionPolicy: I梞ū筀
       priority: -413167112
       priorityClassName: "356"
@@ -787,17 +789,17 @@ spec:
           subPath: "293"
           subPathExpr: "294"
 status:
-  availableReplicas: -1194745874
-  collisionCount: 775062301
+  availableReplicas: -37906634
+  collisionCount: -1140021566
   conditions:
-  - lastTransitionTime: "2560-07-30T23:35:57Z"
-    lastUpdateTime: "2741-08-01T23:33:42Z"
+  - lastTransitionTime: "2858-07-24T03:05:12Z"
+    lastUpdateTime: "2496-05-16T19:23:13Z"
     message: "363"
     reason: "362"
-    status: ż暬Ƒ琇ũ齑誀ŭ"ɦ?
-    type: 擻搧菸Fǥ楶4驦訨ʣ囨汙Ȗ
-  observedGeneration: -332564099224057101
-  readyReplicas: 1075711928
-  replicas: -1316438261
-  unavailableReplicas: -1993697685
-  updatedReplicas: -733807
+    status: 軓鼐嵱宯ÙQ阉(闒ƈ
+    type: 誀ŭ"ɦ?
+  observedGeneration: 8150411060729751511
+  readyReplicas: -33069389
+  replicas: 959922348
+  unavailableReplicas: -1754419098
+  updatedReplicas: 65493827

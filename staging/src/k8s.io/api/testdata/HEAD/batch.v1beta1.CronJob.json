@@ -1209,14 +1209,17 @@
             ],
             "runtimeClassName": "375",
             "enableServiceLinks": true,
-            "preemptionPolicy": "ɱD很唟-墡è箁E嗆R2"
+            "preemptionPolicy": "ɱD很唟-墡è箁E嗆R2",
+            "overhead": {
+              "攜轴": "82"
+            }
           }
         },
-        "ttlSecondsAfterFinished": -172900943
+        "ttlSecondsAfterFinished": -404772114
       }
     },
-    "successfulJobsHistoryLimit": -1006636575,
-    "failedJobsHistoryLimit": -657004122
+    "successfulJobsHistoryLimit": -585767440,
+    "failedJobsHistoryLimit": -1761745349
   },
   "status": {
     "active": [
@@ -1224,7 +1227,6 @@
         "kind": "376",
         "namespace": "377",
         "name": "378",
-        "uid": "礳Ȭ痍脉PPöƌ镳餘ŁƁ翂|",
         "apiVersion": "379",
         "resourceVersion": "380",
         "fieldPath": "381",

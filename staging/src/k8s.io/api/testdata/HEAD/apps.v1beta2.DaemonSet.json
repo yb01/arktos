@@ -1159,33 +1159,36 @@
         ],
         "runtimeClassName": "357",
         "enableServiceLinks": false,
-        "preemptionPolicy": "I梞ū筀"
+        "preemptionPolicy": "I梞ū筀",
+        "overhead": {
+          "莏ŹZ槇鿖]": "643"
+        }
       }
     },
     "updateStrategy": {
-      "type": "eCmAȥ睙蜵",
+      "type": "ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶",
       "rollingUpdate": {
         
       }
     },
-    "minReadySeconds": -1404859721,
-    "revisionHistoryLimit": -1819153912
+    "minReadySeconds": 346775159,
+    "revisionHistoryLimit": 1836894267
   },
   "status": {
-    "currentNumberScheduled": -1005429684,
-    "numberMisscheduled": -1399236189,
-    "desiredNumberScheduled": -1099349015,
-    "numberReady": -77431114,
-    "observedGeneration": -5137539601620793837,
-    "updatedNumberScheduled": 1048207445,
-    "numberAvailable": 1704922150,
-    "numberUnavailable": -1710874288,
-    "collisionCount": -1993697685,
+    "currentNumberScheduled": 1948226499,
+    "numberMisscheduled": 2000161472,
+    "desiredNumberScheduled": -326058040,
+    "numberReady": 1897665453,
+    "observedGeneration": 5779850976579205338,
+    "updatedNumberScheduled": 194996146,
+    "numberAvailable": 1450294910,
+    "numberUnavailable": 1525782520,
+    "collisionCount": -1754419098,
     "conditions": [
       {
-        "type": "擻搧菸Fǥ楶4驦訨ʣ囨汙Ȗ",
-        "status": "ż暬Ƒ琇ũ齑誀ŭ\"ɦ?",
-        "lastTransitionTime": "2741-08-01T23:33:42Z",
+        "type": "誀ŭ\"ɦ?",
+        "status": "軓鼐嵱宯ÙQ阉(闒ƈ",
+        "lastTransitionTime": "2496-05-16T19:23:13Z",
         "reason": "358",
         "message": "359"
       }
