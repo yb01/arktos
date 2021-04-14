@@ -23,9 +23,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
-	"k8s.io/kubernetes/pkg/features"
 	framework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 )
@@ -107,10 +105,11 @@ func computePodResourceRequest(pod *v1.Pod) *preFilterState {
 		result.SetMaxResource(container.Resources.Requests)
 	}
 
+	/* Skip PR 76968 - TBD
 	// If Overhead is being utilized, add to the total requests for the pod
 	if pod.Spec.Overhead != nil && utilfeature.DefaultFeatureGate.Enabled(features.PodOverhead) {
 		result.Add(pod.Spec.Overhead)
-	}
+	}*/
 
 	return result
 }
