@@ -32,8 +32,8 @@ metadata:
   tenant: "4"
   uid: "7"
 spec:
-  minReadySeconds: 346775159
-  revisionHistoryLimit: 1836894267
+  minReadySeconds: -1073494295
+  revisionHistoryLimit: 1722340205
   selector:
     matchExpressions:
     - key: p503---477-49p---o61---4fy--9---7--9-9s-0-u5lj2--10pq-0-7-9-2-0/fP81.-.9Vdx.TB_M-H_5_.t..bG0
@@ -536,6 +536,16 @@ spec:
         operator: 査Z綶ĀRġ磸
         tolerationSeconds: 563892352146095619
         value: "349"
+      topologySpreadConstraints:
+      - labelSelector:
+          matchExpressions:
+          - key: 0.9-.-._.1..s._jP6j.u--.K--g__..2bidF.-0-...E
+            operator: DoesNotExist
+          matchLabels:
+            dno-52--6-0dkn9/i_zZsY_o8t5Vl6_..7CY-_dc__GN: z1Y_HEb.9x98MM7-.e.Dx._.W-6..4_M7
+        maxSkew: -1404859721
+        topologyKey: "358"
+        whenUnsatisfiable: Ɖ虼/h毂
       virtualMachine:
         bootVolume: "281"
         cloudInitUserDataScript: "284"
@@ -794,20 +804,20 @@ spec:
           subPathExpr: "290"
   updateStrategy:
     rollingUpdate: {}
-    type: ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶
+    type: ^:犾ȩ纾SȞ+
 status:
-  collisionCount: -1754419098
+  collisionCount: 490158926
   conditions:
-  - lastTransitionTime: "2496-05-16T19:23:13Z"
-    message: "359"
-    reason: "358"
-    status: 軓鼐嵱宯ÙQ阉(闒ƈ
-    type: 誀ŭ"ɦ?
-  currentNumberScheduled: 1948226499
-  desiredNumberScheduled: -326058040
-  numberAvailable: 1450294910
-  numberMisscheduled: 2000161472
-  numberReady: 1897665453
-  numberUnavailable: 1525782520
-  observedGeneration: 5779850976579205338
-  updatedNumberScheduled: 194996146
+  - lastTransitionTime: "2550-04-28T17:34:41Z"
+    message: "366"
+    reason: "365"
+    status: _Z喣JȶZy
+    type: 橈"Ĩ媻ʪǆ澆痪oPWkÄǒKŰ踚
+  currentNumberScheduled: 1640792434
+  desiredNumberScheduled: -1770820888
+  numberAvailable: -235670051
+  numberMisscheduled: 465976875
+  numberReady: -1304707993
+  numberUnavailable: -590976116
+  observedGeneration: 5633897763261903976
+  updatedNumberScheduled: 1803707874

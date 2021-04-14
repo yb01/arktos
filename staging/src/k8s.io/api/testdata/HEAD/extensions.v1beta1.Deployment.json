@@ -1151,39 +1151,57 @@
         "preemptionPolicy": "I梞ū筀",
         "overhead": {
           "莏ŹZ槇鿖]": "643"
-        }
+        },
+        "topologySpreadConstraints": [
+          {
+            "maxSkew": -1404859721,
+            "topologyKey": "362",
+            "whenUnsatisfiable": "Ɖ虼/h毂",
+            "labelSelector": {
+              "matchLabels": {
+                "dno-52--6-0dkn9/i_zZsY_o8t5Vl6_..7CY-_dc__GN": "z1Y_HEb.9x98MM7-.e.Dx._.W-6..4_M7"
+              },
+              "matchExpressions": [
+                {
+                  "key": "0.9-.-._.1..s._jP6j.u--.K--g__..2bidF.-0-...E",
+                  "operator": "DoesNotExist"
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     "strategy": {
-      "type": "ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶",
+      "type": "^:犾ȩ纾SȞ+",
       "rollingUpdate": {
         
       }
     },
-    "minReadySeconds": 346775159,
-    "revisionHistoryLimit": 1836894267,
+    "minReadySeconds": -1073494295,
+    "revisionHistoryLimit": 1722340205,
     "rollbackTo": {
-      "revision": -8752842312990061888
+      "revision": 8500472395080285739
     },
-    "progressDeadlineSeconds": -833699431
+    "progressDeadlineSeconds": -1420238526
   },
   "status": {
-    "observedGeneration": 8150411060729751511,
-    "replicas": 959922348,
-    "updatedReplicas": 65493827,
-    "readyReplicas": -33069389,
-    "availableReplicas": -37906634,
-    "unavailableReplicas": -1754419098,
+    "observedGeneration": -5603678159453052886,
+    "replicas": -1974019203,
+    "updatedReplicas": 980041503,
+    "readyReplicas": -1194311233,
+    "availableReplicas": -938394851,
+    "unavailableReplicas": 490158926,
     "conditions": [
       {
-        "type": "誀ŭ\"ɦ?",
-        "status": "軓鼐嵱宯ÙQ阉(闒ƈ",
-        "lastUpdateTime": "2496-05-16T19:23:13Z",
-        "lastTransitionTime": "2858-07-24T03:05:12Z",
-        "reason": "362",
-        "message": "363"
+        "type": "橈\"Ĩ媻ʪǆ澆痪oPWkÄǒKŰ踚",
+        "status": "_Z喣JȶZy",
+        "lastUpdateTime": "2550-04-28T17:34:41Z",
+        "lastTransitionTime": "2489-09-10T08:31:06Z",
+        "reason": "369",
+        "message": "370"
       }
     ],
-    "collisionCount": -1140021566
+    "collisionCount": -2068243724
   }
 }

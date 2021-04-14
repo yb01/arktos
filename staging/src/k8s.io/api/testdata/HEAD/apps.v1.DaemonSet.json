@@ -1162,35 +1162,53 @@
         "preemptionPolicy": "I梞ū筀",
         "overhead": {
           "莏ŹZ槇鿖]": "643"
-        }
+        },
+        "topologySpreadConstraints": [
+          {
+            "maxSkew": -1404859721,
+            "topologyKey": "358",
+            "whenUnsatisfiable": "Ɖ虼/h毂",
+            "labelSelector": {
+              "matchLabels": {
+                "dno-52--6-0dkn9/i_zZsY_o8t5Vl6_..7CY-_dc__GN": "z1Y_HEb.9x98MM7-.e.Dx._.W-6..4_M7"
+              },
+              "matchExpressions": [
+                {
+                  "key": "0.9-.-._.1..s._jP6j.u--.K--g__..2bidF.-0-...E",
+                  "operator": "DoesNotExist"
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     "updateStrategy": {
-      "type": "ªŒ,躻[鶆f盧詳痍4'N擻搧菸Fǥ楶",
+      "type": "^:犾ȩ纾SȞ+",
       "rollingUpdate": {
         
       }
     },
-    "minReadySeconds": 346775159,
-    "revisionHistoryLimit": 1836894267
+    "minReadySeconds": -1073494295,
+    "revisionHistoryLimit": 1722340205
   },
   "status": {
-    "currentNumberScheduled": 1948226499,
-    "numberMisscheduled": 2000161472,
-    "desiredNumberScheduled": -326058040,
-    "numberReady": 1897665453,
-    "observedGeneration": 5779850976579205338,
-    "updatedNumberScheduled": 194996146,
-    "numberAvailable": 1450294910,
-    "numberUnavailable": 1525782520,
-    "collisionCount": -1754419098,
+    "currentNumberScheduled": 1640792434,
+    "numberMisscheduled": 465976875,
+    "desiredNumberScheduled": -1770820888,
+    "numberReady": -1304707993,
+    "observedGeneration": 5633897763261903976,
+    "updatedNumberScheduled": 1803707874,
+    "numberAvailable": -235670051,
+    "numberUnavailable": -590976116,
+    "collisionCount": 490158926,
     "conditions": [
       {
-        "type": "誀ŭ\"ɦ?",
-        "status": "軓鼐嵱宯ÙQ阉(闒ƈ",
-        "lastTransitionTime": "2496-05-16T19:23:13Z",
-        "reason": "358",
-        "message": "359"
+        "type": "橈\"Ĩ媻ʪǆ澆痪oPWkÄǒKŰ踚",
+        "status": "_Z喣JȶZy",
+        "lastTransitionTime": "2550-04-28T17:34:41Z",
+        "reason": "365",
+        "message": "366"
       }
     ]
   }
