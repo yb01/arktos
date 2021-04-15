@@ -17,6 +17,7 @@ limitations under the License.
 package algorithmprovider
 
 import (
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/podtopologyspread"
 	"sort"
 	"strings"
 
@@ -144,7 +145,6 @@ func getClusterAutoscalerConfig() *schedulerapi.Plugins {
 }
 
 func applyFeatureGates(config *schedulerapi.Plugins) {
-	/* - EvenPodsSpread feature not in Arktos - TODO: PR 77327
 	// Only add EvenPodsSpread if the feature is enabled.
 	if utilfeature.DefaultFeatureGate.Enabled(features.EvenPodsSpread) {
 		klog.Infof("Registering EvenPodsSpread predicate and priority function")
@@ -154,7 +154,7 @@ func applyFeatureGates(config *schedulerapi.Plugins) {
 		config.PreScore.Enabled = append(config.PreScore.Enabled, f)
 		s := schedulerapi.Plugin{Name: podtopologyspread.Name, Weight: 1}
 		config.Score.Enabled = append(config.Score.Enabled, s)
-	}*/
+	}
 
 	// Prioritizes nodes that satisfy pod's resource limits
 	if utilfeature.DefaultFeatureGate.Enabled(features.ResourceLimitsPriorityFunction) {
