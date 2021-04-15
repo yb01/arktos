@@ -49,6 +49,12 @@ func (csiNodeStrategy) TenantScoped() bool {
 
 // PrepareForCreate clears fields that are not allowed to be set on creation.
 func (csiNodeStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
+	csiNode := obj.(*storage.CSINode)
+	if !utilfeature.DefaultFeatureGate.Enabled(features.AttachVolumeLimit) {
+		for i := range csiNode.Spec.Drivers {
+			csiNode.Spec.Drivers[i].Allocatable = nil
+		}
+	}
 }
 
 func (csiNodeStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
@@ -70,6 +76,31 @@ func (csiNodeStrategy) AllowCreateOnUpdate() bool {
 
 // PrepareForUpdate sets the driver's Allocatable fields that are not allowed to be set by an end user updating a CSINode.
 func (csiNodeStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
+	newCSINode := obj.(*storage.CSINode)
+	oldCSINode := old.(*storage.CSINode)
+
+	inUse := getAllocatablesInUse(oldCSINode)
+
+	if !utilfeature.DefaultFeatureGate.Enabled(features.AttachVolumeLimit) {
+		for i := range newCSINode.Spec.Drivers {
+			if !inUse[newCSINode.Spec.Drivers[i].Name] {
+				newCSINode.Spec.Drivers[i].Allocatable = nil
+			}
+		}
+	}
+}
+
+func getAllocatablesInUse(obj *storage.CSINode) map[string]bool {
+	inUse := make(map[string]bool)
+	if obj == nil {
+		return inUse
+	}
+	for i := range obj.Spec.Drivers {
+		if obj.Spec.Drivers[i].Allocatable != nil {
+			inUse[obj.Spec.Drivers[i].Name] = true
+		}
+	}
+	return inUse
 }
 
 func (csiNodeStrategy) ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList {
