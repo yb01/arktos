@@ -438,7 +438,7 @@ func getTPMapMatchingExistingAntiAffinity(pod *v1.Pod, nodeInfoMap map[string]*s
 	klog.V(6).Infof("Number of nodes: %v", len(allNodeNames))
 	// TODO: make this configurable so we can test perf impact when increasing or decreasing concurrency
 	//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
-	workqueue.ParallelizeUntil(ctx, 16, len(allNodeNames), processNode)
+	workqueue.ParallelizeUntil(ctx, 32, len(allNodeNames), processNode)
 	return topologyMap, firstError
 }
 
@@ -529,7 +529,7 @@ func getTPMapMatchingIncomingAffinityAntiAffinity(pod *v1.Pod, nodeInfoMap map[s
 	klog.V(6).Infof("DEBUG: should not see this log in our current perf runs. Number of nodes: %v", len(allNodeNames))
 	// TODO: make this configurable so we can test perf impact when increasing or decreasing concurrency
 	//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
-	workqueue.ParallelizeUntil(context.Background(), 16, len(allNodeNames), processNode)
+	workqueue.ParallelizeUntil(context.Background(), 32, len(allNodeNames), processNode)
 
 	return topologyPairsAffinityPodsMaps, topologyPairsAntiAffinityPodsMaps, firstError
 }

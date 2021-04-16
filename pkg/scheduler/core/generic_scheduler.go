@@ -530,7 +530,7 @@ func (g *genericScheduler) findNodesThatFit(pluginContext *framework.PluginConte
 		//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
 		//       especially the numberNodesToFind is high
 		//
-		workqueue.ParallelizeUntil(ctx, 16, int(allNodes), checkNode)
+		workqueue.ParallelizeUntil(ctx, 32, int(allNodes), checkNode)
 
 		filtered = filtered[:filteredLen]
 		if len(errs) > 0 {
@@ -741,7 +741,7 @@ func PrioritizeNodes(
 	klog.V(6).Infof("Number of nodes: %v", len(nodes))
 	// TODO: make this configurable so we can test perf impact when increasing or decreasing concurrency
 	//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
-	workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), func(index int) {
+	workqueue.ParallelizeUntil(context.TODO(), 32, len(nodes), func(index int) {
 		nodeInfo := nodeNameToInfo[nodes[index].Name]
 		for i := range priorityConfigs {
 			if priorityConfigs[i].Function != nil {
@@ -1016,7 +1016,7 @@ func selectNodesForPreemption(pod *v1.Pod,
 	klog.V(6).Infof("Number of nodes: %v", len(potentialNodes))
 	// TODO: make this configurable so we can test perf impact when increasing or decreasing concurrency
 	//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
-	workqueue.ParallelizeUntil(context.TODO(), 16, len(potentialNodes), checkNode)
+	workqueue.ParallelizeUntil(context.TODO(), 32, len(potentialNodes), checkNode)
 	return nodeToVictims, nil
 }
 

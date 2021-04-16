@@ -225,7 +225,7 @@ func (ipa *InterPodAffinity) CalculateInterPodAffinityPriority(pod *v1.Pod, node
 	klog.V(6).Infof("Number of nodes: %v", len(allNodeNames))
 	// TODO: make this configurable so we can test perf impact when increasing or decreasing concurrency
 	//       on a 96 core machine, it can be much more than 16 concurrent threads to run the processNode function
-	workqueue.ParallelizeUntil(context.TODO(), 16, len(allNodeNames), processNode)
+	workqueue.ParallelizeUntil(context.TODO(), 32, len(allNodeNames), processNode)
 	if pm.firstError != nil {
 		return nil, pm.firstError
 	}
