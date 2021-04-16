@@ -212,8 +212,8 @@ func (ipa *InterPodAffinity) CalculateInterPodAffinityPriority(pod *v1.Pod, node
 				// The pod doesn't have any constraints - we need to check only existing
 				// ones that have some.
 				existingPods := nodeInfo.PodsWithAffinity()
-				klog.V(6).Infof("Node %v, Pods with Affinity: %v", nodeInfo.Node().Name, len(existingPods))
 				for _, existingPod := range existingPods {
+					klog.V(2).Infof("DEBUG this should not be reached in arktos perf run. Node %v, Pod with Affinity: %v", nodeInfo.Node().Name, existingPod)
 					if err := processPod(existingPod); err != nil {
 						pm.setError(err)
 					}

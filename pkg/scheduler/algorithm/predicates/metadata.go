@@ -405,6 +405,7 @@ func getTPMapMatchingExistingAntiAffinity(pod *v1.Pod, nodeInfoMap map[string]*s
 	catchError := func(err error) {
 		lock.Lock()
 		defer lock.Unlock()
+		klog.V(2).Infof("DEBUG: catch error %v", err)
 		if firstError == nil {
 			firstError = err
 		}
