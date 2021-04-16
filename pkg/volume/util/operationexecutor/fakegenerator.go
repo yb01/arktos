@@ -22,6 +22,7 @@ import (
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	csitrans "k8s.io/csi-translation-lib"
 	"k8s.io/kubernetes/pkg/util/mount"
 	"k8s.io/kubernetes/pkg/volume"
 	volumetypes "k8s.io/kubernetes/pkg/volume/util/types"
@@ -87,6 +88,10 @@ func (f *fakeOGCounter) GenerateUnmapDeviceFunc(deviceToDetach AttachedVolume, a
 
 func (f *fakeOGCounter) GetVolumePluginMgr() *volume.VolumePluginMgr {
 	return nil
+}
+
+func (f *fakeOGCounter) GetCSITranslator() InTreeToCSITranslator {
+	return csitrans.New()
 }
 
 func (f *fakeOGCounter) GenerateBulkVolumeVerifyFunc(
