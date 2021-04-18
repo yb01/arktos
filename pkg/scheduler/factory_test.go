@@ -315,7 +315,7 @@ func TestCreateFromConfigWithUnspecifiedPredicatesOrPriorities(t *testing.T) {
 
 func TestDefaultErrorFunc(t *testing.T) {
 	testPod := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "bar"},
+		ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "bar", Tenant: metav1.TenantSystem},
 		Spec:       apitesting.V1DeepEqualSafePodSpec(),
 	}
 	testPodInfo := &framework.PodInfo{Pod: testPod}
