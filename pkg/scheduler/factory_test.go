@@ -341,7 +341,7 @@ func TestDefaultErrorFunc(t *testing.T) {
 			continue
 		}
 
-		testClientGetPodRequest(client, t, testPod.Namespace, testPod.Name)
+		testClientGetPodRequest(client, t, testPod.Tenant, testPod.Namespace, testPod.Name)
 
 		if e, a := testPod, got; !reflect.DeepEqual(e, a) {
 			t.Errorf("Expected %v, got %v", e, a)
@@ -374,7 +374,7 @@ func TestDefaultErrorFunc(t *testing.T) {
 			continue
 		}
 
-		testClientGetPodRequest(client, t, testPod.Namespace, testPod.Name)
+		testClientGetPodRequest(client, t, testPod.Tenant, testPod.Namespace, testPod.Name)
 
 		if e, a := testPod, got; !reflect.DeepEqual(e, a) {
 			t.Errorf("Expected %v, got %v", e, a)
@@ -419,7 +419,7 @@ func getPodfromPriorityQueue(queue *internalqueue.PriorityQueue, pod *v1.Pod) *v
 // testClientGetPodRequest function provides a routine used by TestDefaultErrorFunc test.
 // It tests whether the fake client can receive request and correctly "get" the namespace
 // and name of the error pod.
-func testClientGetPodRequest(client *fake.Clientset, t *testing.T, podNs string, podName string) {
+func testClientGetPodRequest(client *fake.Clientset, t *testing.T, podTenant string, podNs string, podName string) {
 	requestReceived := false
 	actions := client.Actions()
 	for _, a := range actions {
@@ -431,9 +431,9 @@ func testClientGetPodRequest(client *fake.Clientset, t *testing.T, podNs string,
 			}
 			name := getAction.GetName()
 			ns := a.GetNamespace()
-			if name != podName || ns != podNs {
-				t.Errorf("Expected name %s namespace %s, got %s %s",
-					podName, podNs, name, ns)
+			if name != podName || ns != podNs || podTenant != a.GetTenant() {
+				t.Errorf("Expected name %s namespace %s tenant %s, got %s %s %s",
+					podName, podNs, name, ns, podTenant)
 			}
 			requestReceived = true
 		}

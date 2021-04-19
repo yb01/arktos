@@ -513,7 +513,7 @@ func TestSchedulerMultipleProfilesScheduling(t *testing.T) {
 
 	// Send pods to be scheduled.
 	for _, p := range pods {
-		_, err := client.CoreV1().Pods("").Create(ctx, p, metav1.CreateOptions{})
+		_, err := client.CoreV1().PodsWithMultiTenancy("", metav1.TenantSystem).Create(p)
 		if err != nil {
 			t.Fatal(err)
 		}

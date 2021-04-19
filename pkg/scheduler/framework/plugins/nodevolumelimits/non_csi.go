@@ -204,7 +204,7 @@ func (pl *nonCSILimits) Filter(ctx context.Context, _ *framework.CycleState, pod
 	}
 
 	newVolumes := make(map[string]bool)
-	if err := pl.filterVolumes(pod.Spec.Volumes, pod.Namespace, newVolumes); err != nil {
+	if err := pl.filterVolumes(pod.Spec.Volumes, pod.Tenant, pod.Namespace, newVolumes); err != nil {
 		return framework.NewStatus(framework.Error, err.Error())
 	}
 
@@ -237,7 +237,7 @@ func (pl *nonCSILimits) Filter(ctx context.Context, _ *framework.CycleState, pod
 	// count unique volumes
 	existingVolumes := make(map[string]bool)
 	for _, existingPod := range nodeInfo.Pods() {
-		if err := pl.filterVolumes(existingPod.Spec.Volumes, existingPod.Namespace, existingVolumes); err != nil {
+		if err := pl.filterVolumes(existingPod.Spec.Volumes, existingPod.Tenant, existingPod.Namespace, existingVolumes); err != nil {
 			return framework.NewStatus(framework.Error, err.Error())
 		}
 	}
@@ -270,7 +270,7 @@ func (pl *nonCSILimits) Filter(ctx context.Context, _ *framework.CycleState, pod
 	return nil
 }
 
-func (pl *nonCSILimits) filterVolumes(volumes []v1.Volume, namespace string, filteredVolumes map[string]bool) error {
+func (pl *nonCSILimits) filterVolumes(volumes []v1.Volume, tenant string, namespace string, filteredVolumes map[string]bool) error {
 	for i := range volumes {
 		vol := &volumes[i]
 		if id, ok := pl.filter.FilterVolume(vol); ok {
@@ -286,7 +286,7 @@ func (pl *nonCSILimits) filterVolumes(volumes []v1.Volume, namespace string, fil
 			// to avoid conflicts with existing volume IDs.
 			pvID := fmt.Sprintf("%s-%s/%s", pl.randomVolumeIDPrefix, namespace, pvcName)
 
-			pvc, err := pl.pvcLister.PersistentVolumeClaims(namespace).Get(pvcName)
+			pvc, err := pl.pvcLister.PersistentVolumeClaimsWithMultiTenancy(namespace, tenant).Get(pvcName)
 			if err != nil || pvc == nil {
 				// If the PVC is invalid, we don't count the volume because
 				// there's no guarantee that it belongs to the running predicate.
