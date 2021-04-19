@@ -61,8 +61,17 @@ var _ corelisters.ServiceLister = &ServiceLister{}
 // ServiceLister implements ServiceLister on []v1.Service for test purposes.
 type ServiceLister []*v1.Service
 
+// TODO - not sure where this comes from
+func (f ServiceLister) GetPodServices(pod *v1.Pod) ([]*v1.Service, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
 // Services returns nil.
 func (f ServiceLister) Services(namespace string) corelisters.ServiceNamespaceLister {
+	return f.ServicesWithMultiTenancy(namespace, metav1.TenantSystem)
+}
+
+func (f ServiceLister) ServicesWithMultiTenancy(namespace string, tenant string) corelisters.ServiceNamespaceLister {
 	var services []*v1.Service
 	for i := range f {
 		if f[i].Namespace == namespace {
@@ -72,6 +81,7 @@ func (f ServiceLister) Services(namespace string) corelisters.ServiceNamespaceLi
 	return &serviceNamespaceLister{
 		services:  services,
 		namespace: namespace,
+		tenant:    tenant,
 	}
 }
 
@@ -84,6 +94,7 @@ func (f ServiceLister) List(labels.Selector) ([]*v1.Service, error) {
 type serviceNamespaceLister struct {
 	services  []*v1.Service
 	namespace string
+	tenant    string
 }
 
 func (f *serviceNamespaceLister) Get(name string) (*v1.Service, error) {
@@ -110,7 +121,7 @@ func (f ControllerLister) GetPodControllers(pod *v1.Pod) (controllers []*v1.Repl
 
 	for i := range f {
 		controller := f[i]
-		if controller.Namespace != pod.Namespace {
+		if controller.Namespace != pod.Namespace || controller.Tenant != pod.Tenant {
 			continue
 		}
 		selector = labels.Set(controller.Spec.Selector).AsSelectorPreValidated()
@@ -119,7 +130,8 @@ func (f ControllerLister) GetPodControllers(pod *v1.Pod) (controllers []*v1.Repl
 		}
 	}
 	if len(controllers) == 0 {
-		err = fmt.Errorf("could not find Replication Controller for pod %s in namespace %s with labels: %v", pod.Name, pod.Namespace, pod.Labels)
+		err = fmt.Errorf("could not find Replication Controller for pod %s in tenant %s namespace %s with labels: %v",
+			pod.Name, pod.Tenant, pod.Namespace, pod.Labels)
 	}
 
 	return
@@ -127,6 +139,10 @@ func (f ControllerLister) GetPodControllers(pod *v1.Pod) (controllers []*v1.Repl
 
 // ReplicationControllers returns nil
 func (f ControllerLister) ReplicationControllers(namespace string) corelisters.ReplicationControllerNamespaceLister {
+	return f.ReplicationControllersWithMultiTenancy(namespace, metav1.TenantSystem)
+}
+
+func (f ControllerLister) ReplicationControllersWithMultiTenancy(namespace string, tenant string) corelisters.ReplicationControllerNamespaceLister {
 	return nil
 }
 
@@ -145,7 +161,7 @@ func (f ReplicaSetLister) GetPodReplicaSets(pod *v1.Pod) (rss []*appsv1.ReplicaS
 	var selector labels.Selector
 
 	for _, rs := range f {
-		if rs.Namespace != pod.Namespace {
+		if rs.Namespace != pod.Namespace || rs.Tenant != pod.Tenant {
 			continue
 		}
 		selector, err = metav1.LabelSelectorAsSelector(rs.Spec.Selector)
@@ -158,7 +174,8 @@ func (f ReplicaSetLister) GetPodReplicaSets(pod *v1.Pod) (rss []*appsv1.ReplicaS
 		}
 	}
 	if len(rss) == 0 {
-		err = fmt.Errorf("could not find ReplicaSet for pod %s in namespace %s with labels: %v", pod.Name, pod.Namespace, pod.Labels)
+		err = fmt.Errorf("could not find ReplicaSet for pod %s in tenant %s namespace %s with labels: %v",
+			pod.Name, pod.Tenant, pod.Namespace, pod.Labels)
 	}
 
 	return
@@ -166,6 +183,10 @@ func (f ReplicaSetLister) GetPodReplicaSets(pod *v1.Pod) (rss []*appsv1.ReplicaS
 
 // ReplicaSets returns nil
 func (f ReplicaSetLister) ReplicaSets(namespace string) appslisters.ReplicaSetNamespaceLister {
+	return f.ReplicaSetsWithMultiTenancy(namespace, metav1.TenantSystem)
+}
+
+func (f ReplicaSetLister) ReplicaSetsWithMultiTenancy(namespace string, tenant string) appslisters.ReplicaSetNamespaceLister {
 	return nil
 }
 
@@ -184,7 +205,7 @@ func (f StatefulSetLister) GetPodStatefulSets(pod *v1.Pod) (sss []*appsv1.Statef
 	var selector labels.Selector
 
 	for _, ss := range f {
-		if ss.Namespace != pod.Namespace {
+		if ss.Namespace != pod.Namespace || ss.Tenant != pod.Tenant {
 			continue
 		}
 		selector, err = metav1.LabelSelectorAsSelector(ss.Spec.Selector)
@@ -196,13 +217,18 @@ func (f StatefulSetLister) GetPodStatefulSets(pod *v1.Pod) (sss []*appsv1.Statef
 		}
 	}
 	if len(sss) == 0 {
-		err = fmt.Errorf("could not find StatefulSet for pod %s in namespace %s with labels: %v", pod.Name, pod.Namespace, pod.Labels)
+		err = fmt.Errorf("could not find StatefulSet for pod %s in tenant %s namespace %s with labels: %v",
+			pod.Name, pod.Tenant, pod.Namespace, pod.Labels)
 	}
 	return
 }
 
 // StatefulSets returns nil
 func (f StatefulSetLister) StatefulSets(namespace string) appslisters.StatefulSetNamespaceLister {
+	return f.StatefulSetsWithMultiTenancy(namespace, metav1.TenantSystem)
+}
+
+func (f StatefulSetLister) StatefulSetsWithMultiTenancy(namespace string, tenant string) appslisters.StatefulSetNamespaceLister {
 	return nil
 }
 
@@ -210,11 +236,12 @@ func (f StatefulSetLister) StatefulSets(namespace string) appslisters.StatefulSe
 type persistentVolumeClaimNamespaceLister struct {
 	pvcs      []*v1.PersistentVolumeClaim
 	namespace string
+	tenant    string
 }
 
 func (f *persistentVolumeClaimNamespaceLister) Get(name string) (*v1.PersistentVolumeClaim, error) {
 	for _, pvc := range f.pvcs {
-		if pvc.Name == name && pvc.Namespace == f.namespace {
+		if pvc.Name == name && pvc.Namespace == f.namespace && pvc.Tenant == f.tenant {
 			return pvc, nil
 		}
 	}
@@ -237,13 +264,19 @@ func (pvcs PersistentVolumeClaimLister) List(selector labels.Selector) (ret []*v
 
 // PersistentVolumeClaims returns a fake PersistentVolumeClaimLister object.
 func (pvcs PersistentVolumeClaimLister) PersistentVolumeClaims(namespace string) corelisters.PersistentVolumeClaimNamespaceLister {
+	return pvcs.PersistentVolumeClaimsWithMultiTenancy(namespace, metav1.TenantSystem)
+}
+
+func (pvcs PersistentVolumeClaimLister) PersistentVolumeClaimsWithMultiTenancy(namespace string, tenant string) corelisters.PersistentVolumeClaimNamespaceLister {
 	ps := make([]*v1.PersistentVolumeClaim, len(pvcs))
 	for i := range pvcs {
 		ps[i] = &pvcs[i]
 	}
+
 	return &persistentVolumeClaimNamespaceLister{
 		pvcs:      ps,
 		namespace: namespace,
+		tenant:    tenant,
 	}
 }
 
@@ -288,6 +321,14 @@ var _ storagelisters.CSINodeLister = CSINodeLister{}
 // CSINodeLister declares a storagev1.CSINode type for testing.
 type CSINodeLister storagev1.CSINode
 
+func (n CSINodeLister) CSINodes() storagelisters.CSINodeTenantLister {
+	return n.CSINodesWithMultiTenancy(metav1.TenantSystem)
+}
+
+func (n CSINodeLister) CSINodesWithMultiTenancy(tenant string) storagelisters.CSINodeTenantLister {
+	return nil
+}
+
 // Get returns a fake CSINode object.
 func (n CSINodeLister) Get(name string) (*storagev1.CSINode, error) {
 	csiNode := storagev1.CSINode(n)
@@ -303,6 +344,14 @@ func (n CSINodeLister) List(selector labels.Selector) (ret []*storagev1.CSINode,
 type PersistentVolumeLister []v1.PersistentVolume
 
 var _ corelisters.PersistentVolumeLister = PersistentVolumeLister{}
+
+func (pvs PersistentVolumeLister) PersistentVolumes() corelisters.PersistentVolumeTenantLister {
+	return pvs.PersistentVolumesWithMultiTenancy(metav1.TenantSystem)
+}
+
+func (pvs PersistentVolumeLister) PersistentVolumesWithMultiTenancy(tenant string) corelisters.PersistentVolumeTenantLister {
+	return nil
+}
 
 // Get returns a fake PV object in the fake PVs by PV ID.
 func (pvs PersistentVolumeLister) Get(pvID string) (*v1.PersistentVolume, error) {
@@ -323,6 +372,14 @@ func (pvs PersistentVolumeLister) List(selector labels.Selector) ([]*v1.Persiste
 type StorageClassLister []storagev1.StorageClass
 
 var _ storagelisters.StorageClassLister = StorageClassLister{}
+
+func (classes StorageClassLister) StorageClasses() storagelisters.StorageClassTenantLister {
+	return classes.StorageClassesWithMultiTenancy(metav1.TenantSystem)
+}
+
+func (classes StorageClassLister) StorageClassesWithMultiTenancy(tenant string) storagelisters.StorageClassTenantLister {
+	return nil
+}
 
 // Get returns a fake storage class object in the fake storage classes by name.
 func (classes StorageClassLister) Get(name string) (*storagev1.StorageClass, error) {
