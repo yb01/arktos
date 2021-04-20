@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"os"
 	goruntime "runtime"
@@ -199,7 +200,7 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig, outOfTre
 		cc.Broadcaster.StartRecordingToSink(ctx.Done())
 	}
 	if cc.CoreBroadcaster != nil && cc.CoreEventClient != nil {
-		cc.CoreBroadcaster.StartRecordingToSink(&corev1.EventSinkImpl{Interface: cc.CoreEventClient.Events("")})
+		cc.CoreBroadcaster.StartRecordingToSink(&corev1.EventSinkImpl{Interface: cc.CoreEventClient.EventsWithMultiTenancy(metav1.NamespaceAll, metav1.TenantAll)})
 	}
 	// Setup healthz checks.
 	var checks []healthz.HealthChecker
