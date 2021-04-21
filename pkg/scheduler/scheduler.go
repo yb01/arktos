@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	"math/rand"
 	"os"
 	"time"
@@ -81,6 +82,9 @@ type Scheduler struct {
 	// It is expected that changes made via SchedulerCache will be observed
 	// by NodeLister and Algorithm.
 	SchedulerCache internalcache.Cache
+
+	// ResourceProviderNodeListers is used to find node origin
+	ResourceProviderNodeListers map[string]corelisters.NodeLister
 
 	Algorithm core.ScheduleAlgorithm
 	// PodConditionUpdater is used only in case of scheduling errors. If we succeed
@@ -223,6 +227,7 @@ var defaultSchedulerOptions = schedulerOptions{
 // New returns a Scheduler
 func New(client clientset.Interface,
 	informerFactory informers.SharedInformerFactory,
+	nodeInformers map[string]coreinformers.NodeInformer,
 	podInformer coreinformers.PodInformer,
 	recorderFactory profile.RecorderFactory,
 	stopCh <-chan struct{},
@@ -241,7 +246,7 @@ func New(client clientset.Interface,
 	schedulerCache := internalcache.New(30*time.Second, stopEverything)
 	volumeBinder := scheduling.NewVolumeBinder(
 		client,
-		informerFactory.Core().V1().Nodes(),
+		nodeInformers,
 		// TODO - PR 83394 - Convert existing PVs to use volume topology in VolumeBinderPredicate
 		//informerFactory.Storage().V1beta1().CSINodes(),
 		informerFactory.Core().V1().PersistentVolumeClaims(),
@@ -261,6 +266,7 @@ func New(client clientset.Interface,
 		client:                   client,
 		recorderFactory:          recorderFactory,
 		informerFactory:          informerFactory,
+		nodeInformers:            nodeInformers,
 		podInformer:              podInformer,
 		volumeBinder:             volumeBinder,
 		schedulerCache:           schedulerCache,
@@ -321,7 +327,7 @@ func New(client clientset.Interface,
 	sched.podPreemptor = &podPreemptorImpl{client}
 	sched.scheduledPodsHasSynced = podInformer.Informer().HasSynced
 
-	addAllEventHandlers(sched, informerFactory, podInformer)
+	addAllEventHandlers(sched, informerFactory, nodeInformers, podInformer)
 	return sched, nil
 }
 

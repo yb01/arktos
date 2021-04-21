@@ -19,6 +19,7 @@ package cache
 
 import (
 	v1 "k8s.io/api/core/v1"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	schedulerlisters "k8s.io/kubernetes/pkg/scheduler/listers"
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 )

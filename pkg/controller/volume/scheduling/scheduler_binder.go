@@ -19,6 +19,7 @@ package scheduling
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/kubernetes/pkg/controller/volume/scheduling/metrics"
 	"sort"

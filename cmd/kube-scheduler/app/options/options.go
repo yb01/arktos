@@ -399,5 +399,5 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 		return nil, nil, nil, err
 	}
 
-	return clients, leaderElectionClient, eventClient.CoreV1(), nil
+	return clients, leaderElectionClient, eventClient, nil
 }

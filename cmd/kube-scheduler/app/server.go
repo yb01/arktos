@@ -179,6 +179,7 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig, outOfTre
 	recorderFactory := getRecorderFactory(&cc)
 	// Create the scheduler.
 	sched, err := scheduler.New(cc.Client,
+		cc.InformerFactory,
 		cc.NodeInformers,
 		cc.PodInformer,
 		recorderFactory,
