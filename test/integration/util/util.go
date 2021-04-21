@@ -23,6 +23,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
+	coreinformers "k8s.io/client-go/informers/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	clientv1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/record"
@@ -81,7 +82,7 @@ func StartScheduler(clientSet clientset.Interface) (factory.Configurator, Shutdo
 	sched := scheduler.NewFromConfig(config)
 	scheduler.AddAllEventHandlers(sched,
 		v1.DefaultSchedulerName,
-		informerFactory.Core().V1().Nodes(),
+	    map[string]coreinformers.NodeInformer{"rp0":informerFactory.Core().V1().Nodes()},
 		informerFactory.Core().V1().Pods(),
 		informerFactory.Core().V1().PersistentVolumes(),
 		informerFactory.Core().V1().PersistentVolumeClaims(),
@@ -111,7 +112,7 @@ func createSchedulerConfigurator(
 	return factory.NewConfigFactory(&factory.ConfigFactoryArgs{
 		SchedulerName:                  v1.DefaultSchedulerName,
 		Client:                         clientSet,
-		NodeInformer:                   informerFactory.Core().V1().Nodes(),
+		NodeInformers:                   map[string]coreinformers.NodeInformer{"rp0":informerFactory.Core().V1().Nodes()},
 		PodInformer:                    informerFactory.Core().V1().Pods(),
 		PvInformer:                     informerFactory.Core().V1().PersistentVolumes(),
 		PvcInformer:                    informerFactory.Core().V1().PersistentVolumeClaims(),

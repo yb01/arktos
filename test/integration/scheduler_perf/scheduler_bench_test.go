@@ -38,11 +38,11 @@ var (
 // various quantities of nodes and scheduled pods.
 func BenchmarkScheduling(b *testing.B) {
 	tests := []struct{ nodes, existingPods, minPods int }{
-		{nodes: 100, existingPods: 0, minPods: 100},
-		{nodes: 100, existingPods: 1000, minPods: 100},
-		{nodes: 1000, existingPods: 0, minPods: 100},
-		{nodes: 1000, existingPods: 1000, minPods: 100},
-		{nodes: 5000, existingPods: 1000, minPods: 1000},
+		//{nodes: 100, existingPods: 0, minPods: 100},
+		//{nodes: 100, existingPods: 1000, minPods: 100},
+		//{nodes: 1000, existingPods: 0, minPods: 100},
+		//{nodes: 1000, existingPods: 1000, minPods: 100},
+		{nodes: 5000, existingPods: 0, minPods: 150000},
 	}
 	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("rc1")
 	testStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("rc2")
@@ -54,81 +54,81 @@ func BenchmarkScheduling(b *testing.B) {
 	}
 }
 
-// BenchmarkSchedulingPodAntiAffinity benchmarks the scheduling rate of pods with
-// PodAntiAffinity rules when the cluster has various quantities of nodes and
-// scheduled pods.
-func BenchmarkSchedulingPodAntiAffinity(b *testing.B) {
-	tests := []struct{ nodes, existingPods, minPods int }{
-		{nodes: 500, existingPods: 250, minPods: 250},
-		{nodes: 500, existingPods: 5000, minPods: 250},
-		{nodes: 1000, existingPods: 1000, minPods: 500},
-		{nodes: 5000, existingPods: 1000, minPods: 1000},
-	}
-	// The setup strategy creates pods with no affinity rules.
-	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
-	testBasePod := makeBasePodWithPodAntiAffinity(
-		map[string]string{"name": "test", "color": "green"},
-		map[string]string{"color": "green"})
-	// The test strategy creates pods with anti-affinity for each other.
-	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
-	for _, test := range tests {
-		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
-		b.Run(name, func(b *testing.B) {
-			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, defaultNodeStrategy, setupStrategy, testStrategy, b)
-		})
-	}
-}
-
-// BenchmarkSchedulingPodAffinity benchmarks the scheduling rate of pods with
-// PodAffinity rules when the cluster has various quantities of nodes and
-// scheduled pods.
-func BenchmarkSchedulingPodAffinity(b *testing.B) {
-	tests := []struct{ nodes, existingPods, minPods int }{
-		{nodes: 500, existingPods: 250, minPods: 250},
-		{nodes: 500, existingPods: 5000, minPods: 250},
-		{nodes: 1000, existingPods: 1000, minPods: 500},
-		{nodes: 5000, existingPods: 1000, minPods: 1000},
-	}
-	// The setup strategy creates pods with no affinity rules.
-	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
-	testBasePod := makeBasePodWithPodAffinity(
-		map[string]string{"foo": ""},
-		map[string]string{"foo": ""},
-	)
-	// The test strategy creates pods with affinity for each other.
-	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
-	nodeStrategy := testutils.NewLabelNodePrepareStrategy(v1.LabelZoneFailureDomain, "zone1")
-	for _, test := range tests {
-		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
-		b.Run(name, func(b *testing.B) {
-			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, nodeStrategy, setupStrategy, testStrategy, b)
-		})
-	}
-}
-
-// BenchmarkSchedulingNodeAffinity benchmarks the scheduling rate of pods with
-// NodeAffinity rules when the cluster has various quantities of nodes and
-// scheduled pods.
-func BenchmarkSchedulingNodeAffinity(b *testing.B) {
-	tests := []struct{ nodes, existingPods, minPods int }{
-		{nodes: 500, existingPods: 250, minPods: 250},
-		{nodes: 500, existingPods: 5000, minPods: 250},
-		{nodes: 1000, existingPods: 1000, minPods: 500},
-		{nodes: 5000, existingPods: 1000, minPods: 1000},
-	}
-	// The setup strategy creates pods with no affinity rules.
-	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
-	testBasePod := makeBasePodWithNodeAffinity(v1.LabelZoneFailureDomain, []string{"zone1", "zone2"})
-	// The test strategy creates pods with node-affinity for each other.
-	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
-	nodeStrategy := testutils.NewLabelNodePrepareStrategy(v1.LabelZoneFailureDomain, "zone1")
-	for _, test := range tests {
-		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
-		b.Run(name, func(b *testing.B) {
-			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, nodeStrategy, setupStrategy, testStrategy, b)
-		})
-	}
-}
+//// BenchmarkSchedulingPodAntiAffinity benchmarks the scheduling rate of pods with
+//// PodAntiAffinity rules when the cluster has various quantities of nodes and
+//// scheduled pods.
+//func BenchmarkSchedulingPodAntiAffinity(b *testing.B) {
+//	tests := []struct{ nodes, existingPods, minPods int }{
+//		{nodes: 500, existingPods: 250, minPods: 250},
+//		{nodes: 500, existingPods: 5000, minPods: 250},
+//		{nodes: 1000, existingPods: 1000, minPods: 500},
+//		{nodes: 5000, existingPods: 1000, minPods: 1000},
+//	}
+//	// The setup strategy creates pods with no affinity rules.
+//	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
+//	testBasePod := makeBasePodWithPodAntiAffinity(
+//		map[string]string{"name": "test", "color": "green"},
+//		map[string]string{"color": "green"})
+//	// The test strategy creates pods with anti-affinity for each other.
+//	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
+//	for _, test := range tests {
+//		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
+//		b.Run(name, func(b *testing.B) {
+//			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, defaultNodeStrategy, setupStrategy, testStrategy, b)
+//		})
+//	}
+//}
+//
+//// BenchmarkSchedulingPodAffinity benchmarks the scheduling rate of pods with
+//// PodAffinity rules when the cluster has various quantities of nodes and
+//// scheduled pods.
+//func BenchmarkSchedulingPodAffinity(b *testing.B) {
+//	tests := []struct{ nodes, existingPods, minPods int }{
+//		{nodes: 500, existingPods: 250, minPods: 250},
+//		{nodes: 500, existingPods: 5000, minPods: 250},
+//		{nodes: 1000, existingPods: 1000, minPods: 500},
+//		{nodes: 5000, existingPods: 1000, minPods: 1000},
+//	}
+//	// The setup strategy creates pods with no affinity rules.
+//	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
+//	testBasePod := makeBasePodWithPodAffinity(
+//		map[string]string{"foo": ""},
+//		map[string]string{"foo": ""},
+//	)
+//	// The test strategy creates pods with affinity for each other.
+//	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
+//	nodeStrategy := testutils.NewLabelNodePrepareStrategy(v1.LabelZoneFailureDomain, "zone1")
+//	for _, test := range tests {
+//		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
+//		b.Run(name, func(b *testing.B) {
+//			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, nodeStrategy, setupStrategy, testStrategy, b)
+//		})
+//	}
+//}
+//
+//// BenchmarkSchedulingNodeAffinity benchmarks the scheduling rate of pods with
+//// NodeAffinity rules when the cluster has various quantities of nodes and
+//// scheduled pods.
+//func BenchmarkSchedulingNodeAffinity(b *testing.B) {
+//	tests := []struct{ nodes, existingPods, minPods int }{
+//		{nodes: 500, existingPods: 250, minPods: 250},
+//		{nodes: 500, existingPods: 5000, minPods: 250},
+//		{nodes: 1000, existingPods: 1000, minPods: 500},
+//		{nodes: 5000, existingPods: 1000, minPods: 1000},
+//	}
+//	// The setup strategy creates pods with no affinity rules.
+//	setupStrategy := testutils.NewSimpleWithControllerCreatePodStrategy("setup")
+//	testBasePod := makeBasePodWithNodeAffinity(v1.LabelZoneFailureDomain, []string{"zone1", "zone2"})
+//	// The test strategy creates pods with node-affinity for each other.
+//	testStrategy := testutils.NewCustomCreatePodStrategy(testBasePod)
+//	nodeStrategy := testutils.NewLabelNodePrepareStrategy(v1.LabelZoneFailureDomain, "zone1")
+//	for _, test := range tests {
+//		name := fmt.Sprintf("%vNodes/%vPods", test.nodes, test.existingPods)
+//		b.Run(name, func(b *testing.B) {
+//			benchmarkScheduling(test.nodes, test.existingPods, test.minPods, nodeStrategy, setupStrategy, testStrategy, b)
+//		})
+//	}
+//}
 
 // makeBasePodWithPodAntiAffinity creates a Pod object to be used as a template.
 // The Pod has a PodAntiAffinity requirement against pods with the given labels.

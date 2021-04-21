@@ -18,6 +18,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+TEST=$1
+
 KUBE_ROOT=$(dirname "${BASH_SOURCE[0]}")/../../../
 source "${KUBE_ROOT}/hack/lib/init.sh"
 
@@ -43,10 +45,12 @@ if ${RUN_BENCHMARK:-false}; then
   go test -c -o "perf.test"
 
   kube::log::status "performance test (benchmark) start"
-  "./perf.test" -test.bench=. -test.run=xxxx -test.cpuprofile=prof.out -test.short=false
+  "./perf.test" -test.bench=. -test.run=${TEST} -test.cpuprofile=prof.out -test.short=false
   kube::log::status "...benchmark tests finished"
 fi
 # Running density tests. It might take a long time.
-kube::log::status "performance test (density) start"
-go test -test.run=. -test.timeout=60m -test.short=false
+if ${RUN_DENSITY:-false}; then
+  kube::log::status "performance test (density) start"
+  go test -test.run=. -test.timeout=60m -test.short=false
 kube::log::status "...density tests finished"
+fi
