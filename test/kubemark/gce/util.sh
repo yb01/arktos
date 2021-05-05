@@ -44,7 +44,6 @@ function create-kubemark-master {
     export KUBECONFIG=${KUBEMARK_CLUSTER_KUBECONFIG}
 
     KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX:-e2e-test-${USER}}-kubemark"
-    SCALEOUT_PROXY_NAME="${KUBE_GCE_INSTANCE_PREFIX}-proxy"
 
     # the calling function ensures that the cluster is either for RP or TP in scaleout env
     #
@@ -60,7 +59,6 @@ function create-kubemark-master {
       KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX}-tp-${TENANT_PARTITION_SEQUENCE}"
     fi
 
-    export SCALEOUT_PROXY_NAME
     export KUBE_GCE_INSTANCE_PREFIX
     export CLUSTER_NAME="${KUBE_GCE_INSTANCE_PREFIX}"
     export KUBE_CREATE_NODES=false
@@ -114,13 +112,11 @@ function delete-kubemark-master {
     ## reset CLUSTER_NAME to avoid multi kubemark added after e2e.
     KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX:-e2e-test-${USER}}-kubemark"
     if [[ "${KUBERNETES_RESOURCE_PARTITION:-false}" == "true" ]]; then
-      SCALEOUT_PROXY_NAME="${KUBE_GCE_INSTANCE_PREFIX}-proxy"
       KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX}-rp-${RESOURCE_PARTITION_SEQUENCE}"
     fi
     if [[ "${KUBERNETES_TENANT_PARTITION:-false}" == "true" ]]; then
         KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX}-tp-${TENANT_PARTITION_SEQUENCE}"
     fi
-    export SCALEOUT_PROXY_NAME
     export KUBE_GCE_INSTANCE_PREFIX
     export CLUSTER_NAME="${KUBE_GCE_INSTANCE_PREFIX}"
     export KUBE_DELETE_NETWORK=false
