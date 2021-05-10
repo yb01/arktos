@@ -92,7 +92,11 @@ function create-kubeconfig() {
   )
 
   if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
-    if [[ "${USE_INSECURE_SCALEOUT_CLUSTER_MODE:-false}" == "true" ]]; then
+    if [[ "${KUBERNETES_SCALEOUT_PROXY_KUBECFG:-false}" == "true" ]]; then
+      cluster_args=(
+          "--server=${KUBE_SERVER:-https://${PROXY_RESERVED_IP}}:443"
+       )
+    elif [[ "${USE_INSECURE_SCALEOUT_CLUSTER_MODE:-false}" == "true" ]]; then
       cluster_args=(
           "--server=${KUBE_SERVER:-http://${KUBE_MASTER_IP}}:8080"
        )

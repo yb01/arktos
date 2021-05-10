@@ -2422,6 +2422,40 @@ function create-node-template() {
   done
 }
 
+function proxy-up() {
+  echo "DBG: calling proxy-up"
+  kube::util::ensure-temp-dir
+  detect-project
+  detect-subnetworks
+
+  echo "create proxy vm"
+  create-proxy-vm
+
+  echo "setup proxy on vm"
+  setup-proxy
+  build_haproxy_cfg_generator
+
+  echo "update proxy with TP RP IPs: " ${TPIP} ${RPIP}
+  update-proxy ${TPIP} ${RPIP}
+
+  echo "create proxy kubeconfig"
+  export KUBE_CERT="${KUBE_TEMP}/easy-rsa-master/proxy/pki/issued/kubecfg.crt"
+  export KUBE_KEY="${KUBE_TEMP}/easy-rsa-master/proxy/pki/private/kubecfg.key"
+  export CA_CERT="${KUBE_TEMP}/easy-rsa-master/proxy/pki/ca.crt"
+  export CONTEXT="${PROJECT}_${SCALEOUT_PROXY_NAME}"
+  (
+   umask 077
+
+   echo "PROXY RESERVED IP: " ${PROXY_RESERVED_IP}
+   # Update the user's kubeconfig to include credentials for this apiserver.
+   KUBE_MASTER_IP="0.0.0.0" KUBERNETES_SCALEOUT_PROXY_KUBECFG=true KUBECONFIG=${PROXY_KUBECONFIG} create-kubeconfig
+  )
+  # ensures KUBECONFIG is set
+  get-kubeconfig-basicauth
+
+  echo "done"
+}
+
 # Instantiate a kubernetes cluster
 #
 # Assumed vars
@@ -4093,6 +4127,35 @@ function kube-down() {
     done
   fi
 
+  # Delete proxy-vm
+  if [[ "${KUBERNETES_SCALEOUT_PROXY:-false}" == "true" ]]; then
+    if gcloud compute instances describe "${PROXY_NAME}" --zone "${ZONE}" --project "${PROJECT}" &>/dev/null; then
+      gcloud compute instances delete \
+        --project "${PROJECT}" \
+        --quiet \
+        --delete-disks all \
+        --zone "${ZONE}" \
+        "${PROXY_NAME}"
+    fi
+    # Delete firewall rule for the proxy.
+    delete-firewall-rules "${PROXY_NAME}-https"
+    echo "Deleting proxy's reserved IP"
+    if gcloud compute addresses describe "${PROXY_NAME}-ip" --region "${REGION}" --project "${PROJECT}" &>/dev/null; then
+      gcloud compute addresses delete \
+        --project "${PROJECT}" \
+        --region "${REGION}" \
+        --quiet \
+        "${PROXY_NAME}-ip"
+    fi
+    if gcloud compute addresses describe "${PROXY_NAME}-internalip" --region "${REGION}" --project "${PROJECT}" &>/dev/null; then
+      gcloud compute addresses delete \
+        --project "${PROJECT}" \
+        --region "${REGION}" \
+        --quiet \
+        "${PROXY_NAME}-internalip"
+    fi
+  fi
+
   # If there are no more remaining master replicas: delete routes, pd for influxdb and update kubeconfig
   if [[ "${REMAINING_MASTER_COUNT}" -eq 0 ]]; then
     # Delete routes.
@@ -4350,6 +4413,13 @@ function check-resources() {
 function test-build-release() {
   # Make a release
   "${KUBE_ROOT}/build/release.sh"
+}
+
+function proxy-setup() {
+  echo "DBG: Proxy-setup function"
+  # Detect the project into $PROJECT if it isn't set
+  detect-project
+  "${KUBE_ROOT}/cluster/proxy-up.sh"
 }
 
 # Execute prior to running tests to initialize required structure. This is

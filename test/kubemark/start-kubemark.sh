@@ -44,6 +44,7 @@ export SHARED_CA_DIRECTORY=${SHARED_CA_DIRECTORY:-"/tmp/shared_ca"}
 export SCALEOUT_TP_COUNT="${SCALEOUT_TP_COUNT:-1}"
 export SCALEOUT_RP_COUNT="${SCALEOUT_RP_COUNT:-1}"
 export HAPROXY_TLS_MODE=${HAPROXY_TLS_MODE:-"bridging"}
+export SCALEOUT_PROXY_NAME="${KUBE_GCE_INSTANCE_PREFIX}-proxy"
 
 ### the list of kubeconfig files to TP masters
 export TENANT_SERVER_KUBECONFIGS=""
@@ -497,6 +498,23 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   # Create proxy service for scaleout clusters
   # Create kubeconfig via proxy service
   # TODO
+  tp1_ip=$(grep server "${TP_KUBECONFIG}-1" | awk -F "/" '{print $3}')
+  export TPIP="${tp1_ip}"
+  for (( tp_num=2; tp_num<=${SCALEOUT_TP_COUNT}; tp_num++ ))
+  do
+    tp_ip=$(grep server "${TP_KUBECONFIG}-${tp_num}" | awk -F "/" '{print $3}')
+    export TPIP=${TPIP},"${tp_ip}"
+  done
+
+  rp1_ip=$(grep server "${RP_KUBECONFIG}-1" | awk -F "/" '{print $3}')
+  export RPIP="${rp1_ip}"
+  
+  echo "TPIP: ${TPIP}"
+  echo "RPIP: ${RPIP}"
+  export KUBERNETES_SCALEOUT_PROXY=true
+  export KUBE_BEARER_TOKEN=${SHARED_APISERVER_TOKEN}
+  create-arktos-proxy
+  export KUBERNETES_SCALEOUT_PROXY=false
 else
   # scale-up, just create the master servers
   export KUBEMARK_CLUSTER_KUBECONFIG="${RESOURCE_DIRECTORY}/kubeconfig.kubemark"

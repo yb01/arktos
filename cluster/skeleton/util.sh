@@ -65,6 +65,10 @@ function test-setup {
 	echo "Skeleton Provider: test-setup not implemented" 1>&2
 }
 
+function proxy-setup {
+	echo "Skeleton Provider: proxy-setup not implemented" 1>&2
+}
+
 # Execute after running tests to perform any required clean-up
 function test-teardown {
 	echo "Skeleton Provider: test-teardown not implemented" 1>&2

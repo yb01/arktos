@@ -32,6 +32,61 @@ function authenticate-docker {
   gcloud beta auth configure-docker -q
 }
 
+function create-arktos-proxy {
+  (
+    echo "DBG: Create arktos-proxy"
+
+    kube::util::ensure-temp-dir
+    export KUBE_TEMP="${KUBE_TEMP}"
+
+    echo "DBG: Using kubeconfig file: ${PROXY_KUBECONFIG}"
+    export KUBECONFIG=${PROXY_KUBECONFIG}
+
+    KUBE_GCE_INSTANCE_PREFIX="${KUBE_GCE_INSTANCE_PREFIX:-e2e-test-${USER}}-kubemark"
+
+    export KUBE_GCE_INSTANCE_PREFIX
+    export CLUSTER_NAME="${KUBE_GCE_INSTANCE_PREFIX}"
+    export KUBE_CREATE_NODES=false
+
+    # Even if the "real cluster" is private, we shouldn't manage cloud nat.
+    export KUBE_GCE_PRIVATE_CLUSTER=false
+
+    # Quite tricky cidr setup: we set KUBE_GCE_ENABLE_IP_ALIASES=true to avoid creating
+    # cloud routes and RangeAllocator to assign cidrs by kube-controller-manager.
+    export KUBE_GCE_ENABLE_IP_ALIASES=true
+    export KUBE_GCE_NODE_IPAM_MODE=RangeAllocator
+
+    # Disable all addons. They are running outside of the kubemark cluster.
+    export KUBE_ENABLE_CLUSTER_AUTOSCALER=false
+    export KUBE_ENABLE_CLUSTER_DNS=false
+    export KUBE_ENABLE_NODE_LOGGING=false
+    export KUBE_ENABLE_METRICS_SERVER=false
+    export KUBE_ENABLE_CLUSTER_MONITORING="none"
+    export KUBE_ENABLE_L7_LOADBALANCING="none"
+
+    # Unset env variables set by kubetest for 'root cluster'. We need recompute them
+    # for kubemark master.
+    # TODO(mborsz): Figure out some better way to filter out such env variables than
+    # listing them here.
+#    unset MASTER_SIZE     ###remove this line to allow setting master_size when start kubemark
+#    unset MASTER_DISK_SIZE ###remove this line to allow setting master_disk_size when start kubemark
+    #unset MASTER_ROOT_DISK_SIZE   ###remove this line to allow setting master_root_disk_size when start kubemark
+
+    # Set kubemark-specific overrides:
+    # for each defined env KUBEMARK_X=Y call export X=Y.
+    for var in ${!KUBEMARK_*}; do
+      dst_var=${var#KUBEMARK_}
+      val=${!var}
+      echo "Setting ${dst_var} to '${val}'"
+      export "${dst_var}"="${val}"
+    done
+
+    echo "DBG: calling e2e proxy-up.sh"
+    "${KUBE_ROOT}/hack/e2e-internal/e2e-proxy-up.sh"
+  )
+
+}
+
 function create-kubemark-master {
   # We intentionally override env vars in subshell to preserve original values.
   # shellcheck disable=SC2030,SC2031

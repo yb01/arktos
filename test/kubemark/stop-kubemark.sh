@@ -63,6 +63,7 @@ if [[ "${SCALEOUT_CLUSTER:-false}" == "true" ]]; then
   export KUBERNETES_TENANT_PARTITION=false
   export KUBERNETES_RESOURCE_PARTITION=true
   export KUBERNETES_SCALEOUT_PROXY=true
+  export SCALEOUT_PROXY_NAME="${KUBE_GCE_INSTANCE_PREFIX}-proxy"
   for (( rp_num=1; rp_num<=${SCALEOUT_RP_COUNT}; rp_num++ ))
   do
     rm -rf "${RP_KUBECONFIG}-${rp_num}"
