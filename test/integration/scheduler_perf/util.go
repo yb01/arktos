@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 package benchmark
-
+/*
 import (
 	"encoding/json"
 	"flag"
@@ -255,3 +255,4 @@ func (tc *throughputCollector) collect() []DataItem {
 
 	return []DataItem{throughputSummary}
 }
+*/

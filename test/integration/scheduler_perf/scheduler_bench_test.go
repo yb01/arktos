@@ -15,6 +15,8 @@ limitations under the License.
 */
 
 package benchmark
+/*
+import testutils "k8s.io/kubernetes/test/utils"
 
 import (
 	"fmt"
@@ -629,3 +631,4 @@ func csiVolumeFactory(id int) *v1.PersistentVolume {
 		},
 	}
 }
+*/

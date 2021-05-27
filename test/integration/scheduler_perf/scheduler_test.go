@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 package benchmark
-
+/*
 import (
 	"context"
 	"fmt"
@@ -297,3 +297,4 @@ func writePodAndNodeTopologyToConfig(config *testConfig) error {
 	}
 	return nil
 }
+*/
